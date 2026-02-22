@@ -113,6 +113,16 @@ input {
   font-weight: 600;
 }
 
+.auth-role {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
 .filter-bar {
   margin-top: 10px;
   display: flex;
@@ -395,6 +405,36 @@ input {
   margin: 2px 0 0;
   font-weight: 600;
   color: #b32727;
+}
+
+.protected-shell {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.guard-panel {
+  width: min(100%, 560px);
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+}
+
+.guard-panel h1 {
+  margin: 0;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.6rem;
+}
+
+.guard-message {
+  margin: 0;
+  color: var(--color-muted);
+  font-weight: 600;
 }
 
 @media (max-width: 1199px) {

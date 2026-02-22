@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AuthDialog } from "@/components/auth-dialog";
 import { getSession, logout, subscribeToAuthChanges, type AuthSession } from "@/features/auth/storage";
 
@@ -55,14 +56,14 @@ export function TopNav() {
         </label>
 
         <nav className="top-links" aria-label="Navegación principal">
-          <a href="#">Buy</a>
-          <a href="#">Rent</a>
-          <a href="#">Sell</a>
-          <a href="#">Mortgage</a>
+          <Link href="/">Inicio</Link>
+          <Link href="/propietario">Propietario</Link>
+          <Link href="/admin">Admin</Link>
         </nav>
 
         <div className="auth-controls">
           {isLoggedIn ? <span className="auth-user">{session.email}</span> : null}
+          {isLoggedIn ? <span className="auth-role">{session.role}</span> : null}
           <button type="button" className="btn-auth" onClick={handleAuthClick}>
             {isLoggedIn ? "Cerrar sesión" : "Join / Sign in"}
           </button>

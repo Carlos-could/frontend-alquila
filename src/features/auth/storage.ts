@@ -1,10 +1,12 @@
 import type { Session } from "@supabase/supabase-js";
+import { DEFAULT_USER_ROLE, parseUserRole, type UserRole } from "@/features/auth/roles";
 import { getSupabaseBrowserClient } from "@/features/auth/supabase-client";
 
 export type AuthSession = {
   userId: string;
   email: string;
   createdAt: string;
+  role: UserRole;
 };
 
 function normalizeEmail(email: string): string {
@@ -26,10 +28,15 @@ function mapSession(session: Session | null): AuthSession | null {
     return null;
   }
 
+  const role = parseUserRole(
+    session.user.app_metadata?.role ?? session.user.user_metadata?.role ?? DEFAULT_USER_ROLE
+  );
+
   return {
     userId: session.user.id,
     email: session.user.email,
     createdAt: session.user.created_at ?? new Date().toISOString(),
+    role,
   };
 }
 

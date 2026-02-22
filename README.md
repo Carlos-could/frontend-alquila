@@ -47,3 +47,8 @@ src/
 - Tokens y reglas: `docs/ui/design-system.md`
 - Pantalla listing+map: `docs/ui/listing-map.md`
 
+## Auth y roles
+
+- Roles soportados: `inquilino`, `propietario`, `admin`.
+- Matriz de permisos: `docs/security/permissions-matrix.md`.
+

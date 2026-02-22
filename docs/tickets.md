@@ -81,9 +81,13 @@ Criterios de aceptación:
 Dependencias: F1-T03
 Definición de hecho:
 - Matriz de permisos documentada
-Estado: Pendiente
+Estado: Done
 Evidencia:
-- Pendiente de implementación y verificación DoD.
+- Roles tipados y permisos por ruta en `src/features/auth/roles.ts`.
+- Guard de autorización reutilizable en `src/features/auth/route-guard.tsx`.
+- Rutas protegidas implementadas: `src/app/admin/page.tsx`, `src/app/propietario/page.tsx`.
+- Sesión de auth extendida con `role` en `src/features/auth/storage.ts` (desde metadata de Supabase).
+- Matriz de permisos documentada en `docs/security/permissions-matrix.md`.
 
 ### F1-T05 - Modelo de datos inicial + migraciones
 Prioridad: P0
