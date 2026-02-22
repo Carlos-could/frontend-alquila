@@ -28,8 +28,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
-      <body className={`${heading.variable} ${body.variable}`}>{children}</body>
+    <html lang="es" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`${heading.variable} ${body.variable}`}>
+        {children}
+      </body>
     </html>
   );
 }

@@ -4,7 +4,13 @@
 
 Antes de iniciar cualquier ticket, aplicar el checklist de `docs/dod-tecnica.md`.
 Reglas técnicas base: `docs/core-development-rules.md`.
-Incidentes y workarounds: `docs/known-issues.md`.\r\n\r\n## Épica F1: Fundaciones
+Incidentes y workarounds: `docs/known-issues.md`.
+
+## Épica F1: Fundaciones
+Estado por ticket:
+- `Pendiente`: no iniciado
+- `En progreso`: implementación activa
+- `Done`: implementado + evidencia técnica registrada
 
 ### F1-T01 - Inicializar repositorio y estructura
 Prioridad: P0
@@ -18,6 +24,11 @@ Criterios de aceptación:
 Dependencias: ninguna
 Definición de hecho:
 - PR aprobado + build verde
+Estado: Done
+Evidencia:
+- `README.md` documenta ejecución en 1 comando y estructura inicial.
+- Archivos base presentes: `.editorconfig`, `.gitignore`, `README.md`.
+- Dominios base presentes en `src/features`: `auth`, `properties`, `applications`, `messaging`.
 
 ### F1-T02 - Configurar entorno y variables
 Prioridad: P0
@@ -31,6 +42,11 @@ Criterios de aceptación:
 Dependencias: F1-T01
 Definición de hecho:
 - Documentación de variables actualizada
+Estado: Done
+Evidencia:
+- `.env.example` creado con variables públicas críticas.
+- `src/config/env.ts` valida variables requeridas y falla con mensaje claro si faltan.
+- `README.md` incluye sección de variables y comportamiento de fallo al iniciar.
 
 ### F1-T03 - Autenticación base
 Prioridad: P0
@@ -45,6 +61,14 @@ Criterios de aceptación:
 Dependencias: F1-T02
 Definición de hecho:
 - Tests básicos de auth pasando
+Estado: Done
+Evidencia:
+- Registro/login/logout implementados contra Supabase Auth.
+- Cliente Supabase en `src/features/auth/supabase-client.ts`.
+- Operaciones auth (`signUp`, `signInWithPassword`, `signOut`) en `src/features/auth/storage.ts`.
+- Contraseñas gestionadas por Supabase Auth (no se almacenan ni hashean en frontend).
+- Flujo UI integrado en `src/components/top-nav.tsx` y `src/components/auth-dialog.tsx`.
+- Verificación técnica local: `npm run lint`, `npm run typecheck`, `npm run build`.
 
 ### F1-T04 - Roles y autorización
 Prioridad: P0
@@ -57,6 +81,9 @@ Criterios de aceptación:
 Dependencias: F1-T03
 Definición de hecho:
 - Matriz de permisos documentada
+Estado: Pendiente
+Evidencia:
+- Pendiente de implementación y verificación DoD.
 
 ### F1-T05 - Modelo de datos inicial + migraciones
 Prioridad: P0
@@ -69,6 +96,9 @@ Criterios de aceptación:
 Dependencias: F1-T02
 Definición de hecho:
 - Diagrama simple de entidades en docs
+Estado: Pendiente
+Evidencia:
+- Pendiente de implementación y verificación DoD.
 
 ### F1-T06 - CI básico
 Prioridad: P1
@@ -82,6 +112,9 @@ Criterios de aceptación:
 Dependencias: F1-T01
 Definición de hecho:
 - Estado CI visible en repositorio
+Estado: Pendiente
+Evidencia:
+- Pendiente de implementación y verificación DoD.
 
 ### F1-T07 - Despliegue staging mínimo
 Prioridad: P1
@@ -95,6 +128,9 @@ Criterios de aceptación:
 Dependencias: F1-T06
 Definición de hecho:
 - Runbook corto de despliegue en docs
+Estado: Pendiente
+Evidencia:
+- Pendiente de implementación y verificación DoD.
 
 ### F1-T08 - Observabilidad mínima
 Prioridad: P2
@@ -107,6 +143,9 @@ Criterios de aceptación:
 Dependencias: F1-T01
 Definición de hecho:
 - Guía breve de troubleshooting
+Estado: Pendiente
+Evidencia:
+- Pendiente de implementación y verificación DoD.
 
 
 

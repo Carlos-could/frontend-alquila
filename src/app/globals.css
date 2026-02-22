@@ -98,6 +98,21 @@ input {
   font-weight: 600;
 }
 
+.auth-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-user {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
 .filter-bar {
   margin-top: 10px;
   display: flex;
@@ -292,6 +307,96 @@ input {
   box-shadow: 0 5px 14px rgba(70, 30, 80, 0.35);
 }
 
+.auth-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(7, 19, 33, 0.45);
+}
+
+.auth-dialog {
+  width: min(100%, 420px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 12px 36px rgba(10, 26, 45, 0.2);
+  padding: 16px;
+}
+
+.auth-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.auth-dialog-head h2 {
+  margin: 0;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.4rem;
+}
+
+.auth-close {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fff;
+  width: 32px;
+  height: 32px;
+  font-weight: 700;
+}
+
+.auth-mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.auth-mode-switch button {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px 10px;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+
+.auth-mode-switch button.active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: #fff4f3;
+}
+
+.auth-form {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-form label {
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.auth-form input {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.auth-form .btn-save {
+  margin-top: 8px;
+}
+
+.auth-error {
+  margin: 2px 0 0;
+  font-weight: 600;
+  color: #b32727;
+}
+
 @media (max-width: 1199px) {
   .content-grid {
     grid-template-columns: minmax(0, 55%) minmax(0, 45%);
@@ -329,6 +434,14 @@ input {
 
   .btn-auth {
     grid-area: auth;
+  }
+
+  .auth-controls {
+    justify-content: flex-end;
+  }
+
+  .auth-user {
+    max-width: 140px;
   }
 
   .filter-bar {
