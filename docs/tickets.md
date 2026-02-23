@@ -100,9 +100,13 @@ Criterios de aceptación:
 Dependencias: F1-T02
 Definición de hecho:
 - Diagrama simple de entidades en docs
-Estado: Pendiente
+Estado: Done
 Evidencia:
-- Pendiente de implementación y verificación DoD.
+- Migraciones versionadas creadas en backend: `database/migrations/0001_initial_schema.up.sql` y `database/migrations/0001_initial_schema.down.sql`.
+- Tablas base implementadas en migración inicial: `users`, `properties`, `applications`, `documents`, `messages`, `deals`.
+- Runner de migraciones implementado en backend con comandos: `dotnet run -- migrate up` y `dotnet run -- migrate down`.
+- Validación operativa ejecutada: `dotnet run -- migrate up` con resultado `Applied migration: 0001_initial_schema` y `Migration up finished.`.
+- Diagrama simple de entidades documentado en backend: `docs/data-model.md`.
 
 ### F1-T06 - CI básico
 Prioridad: P1
