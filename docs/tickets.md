@@ -120,9 +120,13 @@ Criterios de aceptación:
 Dependencias: F1-T01
 Definición de hecho:
 - Estado CI visible en repositorio
-Estado: Pendiente
+Estado: Done
 Evidencia:
-- Pendiente de implementación y verificación DoD.
+- Workflow CI implementado en backend: `.github/workflows/ci.yml`.
+- Disparadores configurados: `pull_request` y `push` sobre rama `main`.
+- Etapas implementadas en pipeline: lint (`dotnet format analyzers --verify-no-changes`), test (`dotnet test`) y build (`dotnet build`) en configuración `Release`.
+- Ajuste de proyecto backend para excluir `tests/**` como contenido de publicación y evitar fallos de build en CI (`Backend.Alquila.csproj`).
+- Verificación local de comandos CI: restore, lint, build y test ejecutados con resultado exitoso.
 
 ### F1-T07 - Despliegue staging mínimo
 Prioridad: P1
