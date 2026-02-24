@@ -140,9 +140,13 @@ Criterios de aceptación:
 Dependencias: F1-T06
 Definición de hecho:
 - Runbook corto de despliegue en docs
-Estado: Pendiente
+Estado: Done
 Evidencia:
-- Pendiente de implementación y verificación DoD.
+- Configuración de despliegue staging agregada en backend con Docker (`Dockerfile`) y blueprint de Render (`render.yaml`).
+- Pipeline de despliegue automático implementado en `.github/workflows/deploy-staging.yml` (trigger en `push` a `main` + `workflow_dispatch`).
+- Healthcheck de staging estandarizado en endpoint `GET /health` y validado en workflow contra `STAGING_HEALTHCHECK_URL`.
+- Soporte de puerto dinámico de plataforma agregado en backend para entornos cloud (`PORT` en `Program.cs`).
+- Runbook corto documentado en backend: `docs/staging-deploy-runbook.md`.
 
 ### F1-T08 - Observabilidad mínima
 Prioridad: P2
