@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AuthDialog } from "@/components/auth-dialog";
 import { getSession, logout, subscribeToAuthChanges, type AuthSession } from "@/features/auth/storage";
+import { normalizeError } from "@/features/observability/errors";
+import { logger } from "@/features/observability/logger";
 
 export function TopNav() {
   const [session, setSession] = useState<AuthSession | null>(null);
@@ -37,7 +39,8 @@ export function TopNav() {
       try {
         await logout();
       } catch (error) {
-        console.error(error);
+        const normalizedError = normalizeError(error, "No se pudo cerrar sesión.");
+        logger.error("auth.logout.failed", "Logout action failed.", undefined, normalizedError);
       }
       return;
     }

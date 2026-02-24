@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { loginWithEmailPassword, registerWithEmailPassword } from "@/features/auth/storage";
+import { getErrorMessage, normalizeError } from "@/features/observability/errors";
+import { logger } from "@/features/observability/logger";
 
 type AuthMode = "login" | "register";
 
@@ -18,10 +20,7 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const title = useMemo(
-    () => (mode === "login" ? "Iniciar sesión" : "Crear cuenta"),
-    [mode]
-  );
+  const title = useMemo(() => (mode === "login" ? "Iniciar sesion" : "Crear cuenta"), [mode]);
 
   if (!isOpen) {
     return null;
@@ -32,7 +31,7 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
     setError(null);
 
     if (mode === "register" && confirmPassword !== password) {
-      setError("Las contraseñas no coinciden.");
+      setError("Las contrasenas no coinciden.");
       return;
     }
 
@@ -50,9 +49,9 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
       setConfirmPassword("");
       onClose();
     } catch (submitError) {
-      const message =
-        submitError instanceof Error ? submitError.message : "No se pudo completar la autenticación.";
-      setError(message);
+      const normalizedError = normalizeError(submitError, "No se pudo completar la autenticacion.");
+      logger.error("auth.dialog.submit_failed", "Auth dialog submit failed.", { mode }, normalizedError);
+      setError(getErrorMessage(normalizedError, "No se pudo completar la autenticacion."));
     } finally {
       setLoading(false);
     }
@@ -74,7 +73,7 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
           </button>
         </div>
 
-        <div className="auth-mode-switch" role="tablist" aria-label="Seleccionar modo de autenticación">
+        <div className="auth-mode-switch" role="tablist" aria-label="Seleccionar modo de autenticacion">
           <button
             type="button"
             role="tab"
@@ -106,7 +105,7 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
             required
           />
 
-          <label htmlFor="auth-password">Contraseña</label>
+          <label htmlFor="auth-password">Contrasena</label>
           <input
             id="auth-password"
             type="password"
@@ -119,7 +118,7 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
 
           {mode === "register" ? (
             <>
-              <label htmlFor="auth-confirm-password">Repetir contraseña</label>
+              <label htmlFor="auth-confirm-password">Repetir contrasena</label>
               <input
                 id="auth-confirm-password"
                 type="password"

@@ -159,9 +159,17 @@ Criterios de aceptación:
 Dependencias: F1-T01
 Definición de hecho:
 - Guía breve de troubleshooting
-Estado: Pendiente
+Estado: Done
 Evidencia:
-- Pendiente de implementación y verificación DoD.
+- Logging estructurado en JSON implementado en `src/features/observability/logger.ts`.
+- Normalización central de errores implementada en `src/features/observability/errors.ts`.
+- Manejo central de errores no controlados implementado en:
+  - `src/app/error.tsx`
+  - `src/app/global-error.tsx`
+  - `src/components/global-error-listeners.tsx`
+- Eventos críticos de autenticación registrados con contexto en `src/features/auth/storage.ts`.
+- Guía breve de troubleshooting agregada en `docs/troubleshooting-observability.md`.
+- Verificación técnica local: `npm run lint`, `npm run typecheck`, `npm run build`.
 
 
 

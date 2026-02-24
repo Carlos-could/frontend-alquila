@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Source_Sans_3 } from "next/font/google";
+import { GlobalErrorListeners } from "@/components/global-error-listeners";
 import { env } from "@/config/env";
 import "./globals.css";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${heading.variable} ${body.variable}`}>
+        <GlobalErrorListeners />
         {children}
       </body>
     </html>

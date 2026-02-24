@@ -52,3 +52,8 @@ src/
 - Roles soportados: `inquilino`, `propietario`, `admin`.
 - Matriz de permisos: `docs/security/permissions-matrix.md`.
 
+## Observabilidad
+
+- Logging estructurado JSON y manejo central de errores habilitados (F1-T08).
+- Guia de troubleshooting: `docs/troubleshooting-observability.md`.
+
