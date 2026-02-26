@@ -6,6 +6,32 @@ Antes de iniciar cualquier ticket, aplicar el checklist de `docs/dod-tecnica.md`
 Reglas técnicas base: `docs/core-development-rules.md`.
 Incidentes y workarounds: `docs/known-issues.md`.
 
+## Convencion transversal de alcance y estado (aplica a todo el archivo)
+
+Esta convencion aplica retroactivamente a todos los tickets de F1-F5 y a los nuevos.
+
+Campos obligatorios por ticket:
+- `Scope`: `BE`, `FE` o `FULLSTACK`.
+- `Estado`: usar `BE: <estado>` y `FE: <estado>` cuando `Scope` sea `FULLSTACK`.
+- `Evidencia`: separar en bloques `Backend:` y `Frontend:` cuando `Scope` sea `FULLSTACK`.
+
+Regla de interpretacion operativa:
+- Si el alcance menciona migraciones, tablas, indices, endpoints, permisos de API, repositorios o tests de integracion, incluye `BE`.
+- Si el alcance menciona formularios, vistas, UX, estados de UI, consumo de API o navegacion, incluye `FE`.
+- Si mezcla ambos tipos, el ticket es `FULLSTACK` y no puede marcarse `Done` sin BE y FE en `Done`.
+
+Estados permitidos por capa:
+- `Pendiente`: no iniciado.
+- `En progreso`: implementacion activa.
+- `Done`: implementado + evidencia tecnica registrada.
+
+Plantilla corta recomendada:
+- `Scope: FULLSTACK`
+- `Estado: BE: Done | FE: En progreso`
+- `Evidencia:`
+- `Backend: ...`
+- `Frontend: ...`
+
 ## Épica F1: Fundaciones
 Estado por ticket:
 - `Pendiente`: no iniciado
@@ -24,11 +50,17 @@ Criterios de aceptación:
 Dependencias: ninguna
 Definición de hecho:
 - PR aprobado + build verde
-Estado: Done
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
 Evidencia:
-- `README.md` documenta ejecución en 1 comando y estructura inicial.
-- Archivos base presentes: `.editorconfig`, `.gitignore`, `README.md`.
-- Dominios base presentes en `src/features`: `auth`, `properties`, `applications`, `messaging`.
+- Backend:
+  - `README.md` documenta ejecución con `dotnet run`.
+  - Archivos base presentes: `.editorconfig`, `.gitignore`, `README.md`.
+  - Dominios base presentes en `src/Features`: `Auth`, `Properties`, `Applications`, `Messaging`.
+- Frontend:
+  - `README.md` documenta ejecución en 1 comando y estructura inicial.
+  - Archivos base presentes: `.editorconfig`, `.gitignore`, `README.md`.
+  - Dominios base presentes en `src/features`: `auth`, `properties`, `applications`, `messaging`.
 
 ### F1-T02 - Configurar entorno y variables
 Prioridad: P0
@@ -42,11 +74,18 @@ Criterios de aceptación:
 Dependencias: F1-T01
 Definición de hecho:
 - Documentación de variables actualizada
-Estado: Done
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
 Evidencia:
-- `.env.example` creado con variables públicas críticas.
-- `src/config/env.ts` valida variables requeridas y falla con mensaje claro si faltan.
-- `README.md` incluye sección de variables y comportamiento de fallo al iniciar.
+- Backend:
+  - `.env.example` presente con variables críticas.
+  - Validación fail-fast: `src/Infrastructure/Configuration/EnvironmentValidator.cs`.
+  - Carga de `.env`: `src/Infrastructure/Configuration/DotEnvLoader.cs`.
+  - Variables documentadas en `README.md`.
+- Frontend:
+  - `.env.example` creado con variables públicas críticas.
+  - `src/config/env.ts` valida variables requeridas y falla con mensaje claro si faltan.
+  - `README.md` incluye sección de variables y comportamiento de fallo al iniciar.
 
 ### F1-T03 - Autenticación base
 Prioridad: P0
@@ -61,14 +100,20 @@ Criterios de aceptación:
 Dependencias: F1-T02
 Definición de hecho:
 - Tests básicos de auth pasando
-Estado: Done
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
 Evidencia:
-- Registro/login/logout implementados contra Supabase Auth.
-- Cliente Supabase en `src/features/auth/supabase-client.ts`.
-- Operaciones auth (`signUp`, `signInWithPassword`, `signOut`) en `src/features/auth/storage.ts`.
-- Contraseñas gestionadas por Supabase Auth (no se almacenan ni hashean en frontend).
-- Flujo UI integrado en `src/components/top-nav.tsx` y `src/components/auth-dialog.tsx`.
-- Verificación técnica local: `npm run lint`, `npm run typecheck`, `npm run build`.
+- Backend:
+  - JWT bearer configurado en `Program.cs` con issuer de Supabase.
+  - Endpoint protegido `GET /auth/me` implementado.
+  - Integración de autenticación activa con `UseAuthentication`.
+- Frontend:
+  - Registro/login/logout implementados contra Supabase Auth.
+  - Cliente Supabase en `src/features/auth/supabase-client.ts`.
+  - Operaciones auth (`signUp`, `signInWithPassword`, `signOut`) en `src/features/auth/storage.ts`.
+  - Contraseñas gestionadas por Supabase Auth (no se almacenan ni hashean en frontend).
+  - Flujo UI integrado en `src/components/top-nav.tsx` y `src/components/auth-dialog.tsx`.
+  - Verificación técnica local: `npm run lint`, `npm run typecheck`, `npm run build`.
 
 ### F1-T04 - Roles y autorización
 Prioridad: P0
@@ -81,13 +126,20 @@ Criterios de aceptación:
 Dependencias: F1-T03
 Definición de hecho:
 - Matriz de permisos documentada
-Estado: Done
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
 Evidencia:
-- Roles tipados y permisos por ruta en `src/features/auth/roles.ts`.
-- Guard de autorización reutilizable en `src/features/auth/route-guard.tsx`.
-- Rutas protegidas implementadas: `src/app/admin/page.tsx`, `src/app/propietario/page.tsx`.
-- Sesión de auth extendida con `role` en `src/features/auth/storage.ts` (desde metadata de Supabase).
-- Matriz de permisos documentada en `docs/security/permissions-matrix.md`.
+- Backend:
+  - Roles tipados en `src/Features/Auth/UserRoles.cs`.
+  - Policies por rol en `src/Features/Auth/AuthorizationPolicies.cs`.
+  - Endpoints protegidos por policy: `/inquilino`, `/propietario`, `/admin`.
+  - Pruebas de autorización: `tests/Backend.Alquila.Tests/AuthorizationIntegrationTests.cs`.
+- Frontend:
+  - Roles tipados y permisos por ruta en `src/features/auth/roles.ts`.
+  - Guard de autorización reutilizable en `src/features/auth/route-guard.tsx`.
+  - Rutas protegidas implementadas: `src/app/admin/page.tsx`, `src/app/propietario/page.tsx`.
+  - Sesión de auth extendida con `role` en `src/features/auth/storage.ts` (desde metadata de Supabase).
+  - Matriz de permisos documentada en `docs/security/permissions-matrix.md`.
 
 ### F1-T05 - Modelo de datos inicial + migraciones
 Prioridad: P0
@@ -100,6 +152,7 @@ Criterios de aceptación:
 Dependencias: F1-T02
 Definición de hecho:
 - Diagrama simple de entidades en docs
+Scope: BE
 Estado: Done
 Evidencia:
 - Migraciones versionadas creadas en backend: `database/migrations/0001_initial_schema.up.sql` y `database/migrations/0001_initial_schema.down.sql`.
@@ -120,13 +173,17 @@ Criterios de aceptación:
 Dependencias: F1-T01
 Definición de hecho:
 - Estado CI visible en repositorio
-Estado: Done
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
 Evidencia:
-- Workflow CI implementado en backend: `.github/workflows/ci.yml`.
-- Disparadores configurados: `pull_request` y `push` sobre rama `main`.
-- Etapas implementadas en pipeline: lint (`dotnet format analyzers --verify-no-changes`), test (`dotnet test`) y build (`dotnet build`) en configuración `Release`.
-- Ajuste de proyecto backend para excluir `tests/**` como contenido de publicación y evitar fallos de build en CI (`Backend.Alquila.csproj`).
-- Verificación local de comandos CI: restore, lint, build y test ejecutados con resultado exitoso.
+- Backend:
+  - Workflow CI implementado en `.github/workflows/ci.yml`.
+  - Disparadores configurados: `pull_request` y `push` sobre rama `main`.
+  - Etapas implementadas: lint (`dotnet format`), build (`dotnet build`) y test (`dotnet test tests/Backend.Alquila.Tests/Backend.Alquila.Tests.csproj`).
+- Frontend:
+  - Workflow CI implementado en `.github/workflows/ci.yml`.
+  - Disparadores configurados: `pull_request` y `push` sobre rama `main`.
+  - Etapas implementadas: lint (`npm run lint`), typecheck (`npm run typecheck`), test (`npm run test --if-present`) y build (`npm run build`).
 
 ### F1-T07 - Despliegue staging mínimo
 Prioridad: P1
@@ -140,6 +197,7 @@ Criterios de aceptación:
 Dependencias: F1-T06
 Definición de hecho:
 - Runbook corto de despliegue en docs
+Scope: BE
 Estado: Done
 Evidencia:
 - Configuración de despliegue staging agregada en backend con Docker (`Dockerfile`) y blueprint de Render (`render.yaml`).
@@ -159,17 +217,19 @@ Criterios de aceptación:
 Dependencias: F1-T01
 Definición de hecho:
 - Guía breve de troubleshooting
-Estado: Done
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
 Evidencia:
-- Logging estructurado en JSON implementado en `src/features/observability/logger.ts`.
-- Normalización central de errores implementada en `src/features/observability/errors.ts`.
-- Manejo central de errores no controlados implementado en:
-  - `src/app/error.tsx`
-  - `src/app/global-error.tsx`
-  - `src/components/global-error-listeners.tsx`
-- Eventos críticos de autenticación registrados con contexto en `src/features/auth/storage.ts`.
-- Guía breve de troubleshooting agregada en `docs/troubleshooting-observability.md`.
-- Verificación técnica local: `npm run lint`, `npm run typecheck`, `npm run build`.
+- Backend:
+  - Manejo central de errores con `AddProblemDetails` y `UseExceptionHandler` en `Program.cs`.
+  - Variable `SENTRY_DSN` declarada como opción de observabilidad en `.env.example` y `README.md`.
+  - Guía de troubleshooting en `docs/troubleshooting-observability.md`.
+- Frontend:
+  - Logging estructurado en JSON implementado en `src/features/observability/logger.ts`.
+  - Normalización central de errores en `src/features/observability/errors.ts`.
+  - Manejo central de errores no controlados en `src/app/error.tsx`, `src/app/global-error.tsx` y `src/components/global-error-listeners.tsx`.
+  - Eventos críticos de autenticación registrados con contexto en `src/features/auth/storage.ts`.
+  - Verificación técnica local: `npm run lint`, `npm run typecheck`, `npm run build`.
 
 
 
@@ -199,6 +259,19 @@ Criterios de aceptación:
 Dependencias: F2-T01, F1-T04
 Definición de hecho:
 - Pruebas de autorización incluidas
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
+Evidencia:
+- Backend:
+  - Endpoint `POST /properties` implementado en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`.
+  - Endpoint `PATCH /properties/{id}` implementado en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`.
+  - Regla de autorización por dueño/admin validada en `backend-alquila/tests/Backend.Alquila.Tests/PropertiesAuthorizationIntegrationTests.cs`.
+- Frontend:
+  - Cliente API autenticado (Bearer Supabase) implementado en `src/features/properties/api.ts`.
+  - Panel de propietario con formularios de crear/editar integrado en `src/features/properties/property-management-panel.tsx`.
+  - Ruta protegida `/propietario` conectada al panel en `src/app/propietario/page.tsx`.
+  - Estilos de gestión agregados en `src/app/globals.css`.
+  - Verificación técnica local: `npm run lint`, `npm run typecheck`, `npm run build`.
 
 ### F2-T03 - Carga de imágenes
 Prioridad: P0
