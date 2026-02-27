@@ -19,14 +19,20 @@ function apiUrl(path: string): string {
 }
 
 export async function listPublicProperties(): Promise<PublicPropertyItem[]> {
-  const response = await fetch(apiUrl("/properties/public"), {
-    method: "GET",
-    cache: "no-store",
-  });
+  try {
+    const response = await fetch(apiUrl("/properties/public"), {
+      method: "GET",
+      cache: "no-store",
+    });
 
-  if (!response.ok) {
-    throw new Error(`Error ${response.status} cargando listado publico.`);
+    if (!response.ok) {
+      console.warn(`Public properties request failed with status ${response.status}. Returning empty list.`);
+      return [];
+    }
+
+    return (await response.json()) as PublicPropertyItem[];
+  } catch (error) {
+    console.warn("Public properties request failed. Returning empty list.", error);
+    return [];
   }
-
-  return (await response.json()) as PublicPropertyItem[];
 }
