@@ -341,6 +341,21 @@ Criterios de aceptación:
 Dependencias: F2-T01
 Definición de hecho:
 - Pruebas de API de búsqueda pasando
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
+Evidencia:
+- Backend:
+  - Endpoint `GET /properties/public` extendido con filtros, orden y paginación en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`.
+  - Búsqueda pública parametrizable implementada en repositorio PostgreSQL en `backend-alquila/src/Features/Properties/NpgsqlPropertiesRepository.cs`.
+  - Contrato de búsqueda pública (`PublicPropertySearchParams`, `PublicPropertySearchResponse`) agregado en `backend-alquila/src/Features/Properties/PropertyModels.cs`.
+  - Cobertura de integración para filtros combinados y validaciones en `backend-alquila/tests/Backend.Alquila.Tests/PropertiesAuthorizationIntegrationTests.cs`.
+  - Verificación técnica local: `dotnet test tests/Backend.Alquila.Tests/Backend.Alquila.Tests.csproj --filter "FullyQualifiedName~PropertiesAuthorizationIntegrationTests"`.
+- Frontend:
+  - Cliente público con query params y respuesta paginada en `src/features/properties/public-api.ts`.
+  - Home pública conectada a filtros/orden/paginación vía `searchParams` en `src/app/page.tsx`.
+  - Barra de filtros real (ciudad, precio min/max, habitaciones, amueblado, orden, tamaño de página) en `src/components/filter-bar.tsx`.
+  - Estilos de filtros y paginación agregados en `src/app/globals.css`.
+  - Verificación técnica local: `npm run lint`, `npm run typecheck`.
 
 ### F2-T06 - Detalle de inmueble
 Prioridad: P0
