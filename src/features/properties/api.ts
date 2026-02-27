@@ -40,6 +40,15 @@ export type PropertyImageResponse = {
   createdAt: string;
 };
 
+export type PropertyModerationQueueItem = {
+  id: string;
+  ownerUserId: string;
+  title: string;
+  city: string;
+  status: string;
+  updatedAt: string;
+};
+
 function apiUrl(path: string): string {
   const baseUrl = env.NEXT_PUBLIC_API_URL.replace(/\/+$/, "");
   return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
@@ -195,6 +204,38 @@ export async function reorderPropertyImages(
   } catch (error) {
     const normalizedError = normalizeError(error, "No se pudo guardar el orden de imagenes.");
     logger.error("properties.images.reorder.failed", "Reorder property images failed.", { propertyId }, normalizedError);
+    throw normalizedError;
+  }
+}
+
+export async function listPendingModeration(): Promise<PropertyModerationQueueItem[]> {
+  try {
+    const token = await getBearerToken();
+    const response = await fetch(apiUrl("/properties/moderation/pending"), {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw await parseError(response);
+    }
+
+    return (await response.json()) as PropertyModerationQueueItem[];
+  } catch (error) {
+    const normalizedError = normalizeError(error, "No se pudo cargar la cola de moderacion.");
+    logger.error("properties.moderation.list.failed", "List pending moderation failed.", undefined, normalizedError);
+    throw normalizedError;
+  }
+}
+
+export async function moderatePropertyStatus(propertyId: string, status: "publicado" | "rechazado", reason?: string): Promise<PropertyResponse> {
+  try {
+    return await requestJson<PropertyResponse>(`/properties/${propertyId}/moderation`, "PATCH", { status, reason });
+  } catch (error) {
+    const normalizedError = normalizeError(error, "No se pudo actualizar el estado del inmueble.");
+    logger.error("properties.moderation.update.failed", "Moderate property status failed.", { propertyId, status }, normalizedError);
     throw normalizedError;
   }
 }

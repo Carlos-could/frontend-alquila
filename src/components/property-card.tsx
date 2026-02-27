@@ -1,7 +1,7 @@
 ﻿import Image from "next/image";
 
 export interface Property {
-  id: number;
+  id: string;
   price: number;
   beds: number;
   baths: number;

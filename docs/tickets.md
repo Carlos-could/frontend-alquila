@@ -313,6 +313,21 @@ Criterios de aceptación:
 Dependencias: F2-T02
 Definición de hecho:
 - Historial de cambios de estado registrado
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
+Evidencia:
+- Backend:
+  - Acción de moderación admin implementada en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`:
+    - `PATCH /properties/{id}/moderation`
+    - `GET /properties/moderation/pending`
+    - `GET /properties/{id}/status-history`
+  - Historial de cambios de estado persistido con migración `backend-alquila/database/migrations/0004_property_status_history.up.sql`.
+  - Listado público restringido a `publicado` en `GET /properties/public`.
+  - Pruebas de moderación y listado público en `backend-alquila/tests/Backend.Alquila.Tests/PropertiesAuthorizationIntegrationTests.cs`.
+- Frontend:
+  - Panel admin para aprobar/rechazar pendientes en `src/features/properties/admin-moderation-panel.tsx` y `src/app/admin/page.tsx`.
+  - Home público consume `GET /properties/public` en `src/app/page.tsx` con cliente `src/features/properties/public-api.ts`.
+  - Verificación técnica local: `npm run lint`, `npm run typecheck`, `npm run build`.
 
 ### F2-T05 - Listado público con filtros
 Prioridad: P0

@@ -1,13 +1,11 @@
 import { RouteGuard } from "@/features/auth/route-guard";
+import { AdminModerationPanel } from "@/features/properties/admin-moderation-panel";
 
 export default function AdminPage() {
   return (
     <main className="protected-shell">
       <RouteGuard allowedRoles={["admin"]}>
-        <section className="guard-panel">
-          <h1>Panel admin</h1>
-          <p className="guard-message">Solo usuarios con rol admin pueden ver esta seccion.</p>
-        </section>
+        <AdminModerationPanel />
       </RouteGuard>
     </main>
   );
