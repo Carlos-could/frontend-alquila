@@ -285,6 +285,22 @@ Criterios de aceptación:
 Dependencias: F2-T02
 Definición de hecho:
 - Manejo de errores de subida implementado
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
+Evidencia:
+- Backend:
+  - Migración de galería implementada en `backend-alquila/database/migrations/0003_property_images.up.sql` y rollback en `0003_property_images.down.sql`.
+  - Endpoints de imágenes implementados en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`:
+    - `GET /properties/{id}/images`
+    - `POST /properties/{id}/images`
+    - `PATCH /properties/{id}/images/order`
+  - Validaciones de subida: formato (`image/jpeg`, `image/png`, `image/webp`), tamaño máximo (5 MB) y límite total por inmueble (15).
+  - Persistencia de imágenes y orden en `backend-alquila/src/Features/Properties/NpgsqlPropertiesRepository.cs`.
+- Frontend:
+  - Cliente de galería implementado en `src/features/properties/api.ts` (`listPropertyImages`, `uploadPropertyImages`, `reorderPropertyImages`).
+  - UI de galería en panel propietario (subida múltiple, orden manual y mensajes de error) en `src/features/properties/property-management-panel.tsx`.
+  - Estilos de galería agregados en `src/app/globals.css`.
+  - Verificación técnica local: `npm run lint`, `npm run typecheck`, `npm run build`.
 
 ### F2-T04 - Moderación básica de anuncios
 Prioridad: P1

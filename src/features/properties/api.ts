@@ -24,10 +24,20 @@ export type PropertyUpsertRequest = {
 
 export type PropertyPatchRequest = Partial<PropertyUpsertRequest>;
 
-type PropertyResponse = {
+export type PropertyResponse = {
   id: string;
   ownerUserId: string;
   title: string;
+};
+
+export type PropertyImageResponse = {
+  id: string;
+  propertyId: string;
+  publicUrl: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  displayOrder: number;
+  createdAt: string;
 };
 
 function apiUrl(path: string): string {
@@ -105,6 +115,23 @@ async function requestJson<TResponse>(path: string, method: "POST" | "PATCH", bo
   return (await response.json()) as TResponse;
 }
 
+async function requestFormData<TResponse>(path: string, method: "POST", body: FormData): Promise<TResponse> {
+  const token = await getBearerToken();
+  const response = await fetch(apiUrl(path), {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  });
+
+  if (!response.ok) {
+    throw await parseError(response);
+  }
+
+  return (await response.json()) as TResponse;
+}
+
 export async function createProperty(payload: PropertyUpsertRequest): Promise<PropertyResponse> {
   try {
     return await requestJson<PropertyResponse>("/properties/", "POST", payload);
@@ -121,6 +148,53 @@ export async function patchProperty(propertyId: string, payload: PropertyPatchRe
   } catch (error) {
     const normalizedError = normalizeError(error, "No se pudo editar el inmueble.");
     logger.error("properties.patch.failed", "Patch property request failed.", { propertyId }, normalizedError);
+    throw normalizedError;
+  }
+}
+
+export async function listPropertyImages(propertyId: string): Promise<PropertyImageResponse[]> {
+  try {
+    const token = await getBearerToken();
+    const response = await fetch(apiUrl(`/properties/${propertyId}/images`), {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw await parseError(response);
+    }
+
+    return (await response.json()) as PropertyImageResponse[];
+  } catch (error) {
+    const normalizedError = normalizeError(error, "No se pudo cargar la galeria.");
+    logger.error("properties.images.list.failed", "List property images failed.", { propertyId }, normalizedError);
+    throw normalizedError;
+  }
+}
+
+export async function uploadPropertyImages(propertyId: string, files: File[]): Promise<PropertyImageResponse[]> {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    return await requestFormData<PropertyImageResponse[]>(`/properties/${propertyId}/images`, "POST", formData);
+  } catch (error) {
+    const normalizedError = normalizeError(error, "No se pudieron subir las imagenes.");
+    logger.error("properties.images.upload.failed", "Upload property images failed.", { propertyId }, normalizedError);
+    throw normalizedError;
+  }
+}
+
+export async function reorderPropertyImages(
+  propertyId: string,
+  items: Array<{ imageId: string; displayOrder: number }>
+): Promise<PropertyImageResponse[]> {
+  try {
+    return await requestJson<PropertyImageResponse[]>(`/properties/${propertyId}/images/order`, "PATCH", { items });
+  } catch (error) {
+    const normalizedError = normalizeError(error, "No se pudo guardar el orden de imagenes.");
+    logger.error("properties.images.reorder.failed", "Reorder property images failed.", { propertyId }, normalizedError);
     throw normalizedError;
   }
 }

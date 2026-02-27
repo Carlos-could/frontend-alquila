@@ -1,7 +1,18 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { createProperty, patchProperty, type PropertyPatchRequest, type PropertyUpsertRequest } from "@/features/properties/api";
+import Image from "next/image";
+import { env } from "@/config/env";
+import {
+  createProperty,
+  listPropertyImages,
+  patchProperty,
+  reorderPropertyImages,
+  uploadPropertyImages,
+  type PropertyImageResponse,
+  type PropertyPatchRequest,
+  type PropertyUpsertRequest,
+} from "@/features/properties/api";
 import { getErrorMessage } from "@/features/observability/errors";
 
 const CONTRACT_OPTIONS: PropertyUpsertRequest["contractType"][] = ["long_term", "temporary", "monthly"];
@@ -109,6 +120,12 @@ export function PropertyManagementPanel() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isPatching, setIsPatching] = useState(false);
+  const [gallery, setGallery] = useState<PropertyImageResponse[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagesError, setImagesError] = useState<string | null>(null);
+  const [isLoadingGallery, setIsLoadingGallery] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   const canCreate = useMemo(() => {
     return (
@@ -187,6 +204,85 @@ export function PropertyManagementPanel() {
     } finally {
       setIsPatching(false);
     }
+  }
+
+  async function loadGallery(propertyId: string) {
+    setImagesError(null);
+    setIsLoadingGallery(true);
+
+    try {
+      const loaded = await listPropertyImages(propertyId);
+      setGallery(loaded.sort((a, b) => a.displayOrder - b.displayOrder));
+    } catch (error) {
+      setImagesError(getErrorMessage(error, "No se pudo cargar la galeria."));
+    } finally {
+      setIsLoadingGallery(false);
+    }
+  }
+
+  async function handleUploadImages(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const propertyId = patchForm.id.trim();
+    if (propertyId.length === 0) {
+      setImagesError("Ingresa el ID del inmueble para subir imagenes.");
+      return;
+    }
+
+    if (imageFiles.length === 0) {
+      setImagesError("Selecciona al menos una imagen.");
+      return;
+    }
+
+    setImagesError(null);
+    setSuccessMessage(null);
+    setIsUploadingImages(true);
+
+    try {
+      await uploadPropertyImages(propertyId, imageFiles);
+      await loadGallery(propertyId);
+      setImageFiles([]);
+      setSuccessMessage("Imagenes subidas correctamente.");
+    } catch (error) {
+      setImagesError(getErrorMessage(error, "No se pudieron subir las imagenes."));
+    } finally {
+      setIsUploadingImages(false);
+    }
+  }
+
+  async function handleSaveImageOrder() {
+    const propertyId = patchForm.id.trim();
+    if (propertyId.length === 0) {
+      setImagesError("Ingresa el ID del inmueble para guardar el orden.");
+      return;
+    }
+
+    setImagesError(null);
+    setSuccessMessage(null);
+    setIsSavingOrder(true);
+
+    try {
+      const payload = gallery.map((image) => ({ imageId: image.id, displayOrder: image.displayOrder }));
+      const reordered = await reorderPropertyImages(propertyId, payload);
+      setGallery(reordered.sort((a, b) => a.displayOrder - b.displayOrder));
+      setSuccessMessage("Orden de imagenes actualizado.");
+    } catch (error) {
+      setImagesError(getErrorMessage(error, "No se pudo guardar el orden de imagenes."));
+    } finally {
+      setIsSavingOrder(false);
+    }
+  }
+
+  function updateDisplayOrder(imageId: string, displayOrder: number) {
+    setGallery((prev) =>
+      prev
+        .map((image) => (image.id === imageId ? { ...image, displayOrder } : image))
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+    );
+  }
+
+  function buildImageUrl(publicUrl: string): string {
+    const baseUrl = env.NEXT_PUBLIC_API_URL.replace(/\/+$/, "");
+    return publicUrl.startsWith("http") ? publicUrl : `${baseUrl}${publicUrl}`;
   }
 
   return (
@@ -507,6 +603,88 @@ export function PropertyManagementPanel() {
           </button>
         </form>
       </div>
+
+      <section className="property-form">
+        <h2>Galeria del inmueble</h2>
+        <p className="guard-message">Subida multiple (maximo 15), validacion de formato y tamano, y orden manual.</p>
+
+        <form className="property-image-controls" onSubmit={handleUploadImages}>
+          <label>
+            ID del inmueble
+            <input
+              value={patchForm.id}
+              onChange={(event) => setPatchForm((prev) => ({ ...prev, id: event.target.value }))}
+              placeholder="UUID"
+              required
+            />
+          </label>
+
+          <label>
+            Imagenes
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={(event) => setImageFiles(Array.from(event.target.files ?? []))}
+            />
+          </label>
+
+          <div className="property-image-actions">
+            <button className="btn-save" type="submit" disabled={isUploadingImages}>
+              {isUploadingImages ? "Subiendo..." : "Subir imagenes"}
+            </button>
+            <button
+              className="btn-link"
+              type="button"
+              onClick={() => void loadGallery(patchForm.id.trim())}
+              disabled={patchForm.id.trim().length === 0 || isLoadingGallery}
+            >
+              {isLoadingGallery ? "Cargando..." : "Cargar galeria"}
+            </button>
+            <button
+              className="btn-link"
+              type="button"
+              onClick={() => void handleSaveImageOrder()}
+              disabled={gallery.length === 0 || isSavingOrder}
+            >
+              {isSavingOrder ? "Guardando..." : "Guardar orden"}
+            </button>
+          </div>
+        </form>
+
+        {imagesError ? <p className="property-error">{imagesError}</p> : null}
+
+        {gallery.length > 0 ? (
+          <div className="property-gallery-grid">
+            {gallery.map((image) => (
+              <article key={image.id} className="property-gallery-item">
+                <Image
+                  src={buildImageUrl(image.publicUrl)}
+                  alt="Imagen del inmueble"
+                  className="property-gallery-image"
+                  width={360}
+                  height={220}
+                />
+                <div className="property-gallery-meta">
+                  <span>{image.mimeType}</span>
+                  <span>{Math.round(image.fileSizeBytes / 1024)} KB</span>
+                </div>
+                <label>
+                  Orden
+                  <input
+                    type="number"
+                    min={0}
+                    value={image.displayOrder}
+                    onChange={(event) => updateDisplayOrder(image.id, Number(event.target.value))}
+                  />
+                </label>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="guard-message">No hay imagenes cargadas para este inmueble.</p>
+        )}
+      </section>
     </section>
   );
 }
