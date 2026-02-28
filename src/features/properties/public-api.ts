@@ -102,24 +102,18 @@ export async function listPublicProperties(query: PublicPropertySearchQuery = {}
 }
 
 export async function getPublicPropertyDetail(propertyId: string): Promise<PublicPropertyDetail | null> {
-  try {
-    const response = await fetch(apiUrl(`/properties/public/${propertyId}`), {
-      method: "GET",
-      cache: "no-store",
-    });
+  const response = await fetch(apiUrl(`/properties/public/${propertyId}`), {
+    method: "GET",
+    cache: "no-store",
+  });
 
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      console.warn(`Public property detail request failed with status ${response.status}.`);
-      return null;
-    }
-
-    return (await response.json()) as PublicPropertyDetail;
-  } catch (error) {
-    console.warn("Public property detail request failed.", error);
+  if (response.status === 404) {
     return null;
   }
+
+  if (!response.ok) {
+    throw new Error(`Public property detail request failed with status ${response.status}.`);
+  }
+
+  return (await response.json()) as PublicPropertyDetail;
 }
