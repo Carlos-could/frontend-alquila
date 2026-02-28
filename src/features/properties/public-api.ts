@@ -13,6 +13,35 @@ export type PublicPropertyItem = {
   coverImageUrl: string | null;
 };
 
+export type PublicPropertyImage = {
+  id: string;
+  propertyId: string;
+  publicUrl: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  displayOrder: number;
+  createdAt: string;
+};
+
+export type PublicPropertyDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  city: string;
+  neighborhood: string | null;
+  address: string | null;
+  monthlyPrice: number;
+  depositAmount: number;
+  bedrooms: number;
+  bathrooms: number;
+  areaM2: number;
+  isFurnished: boolean;
+  availableFrom: string;
+  contractType: string;
+  images: PublicPropertyImage[];
+  relatedByCity: PublicPropertyItem[];
+};
+
 export type PublicPropertySearchQuery = {
   city?: string;
   minPrice?: number;
@@ -69,5 +98,28 @@ export async function listPublicProperties(query: PublicPropertySearchQuery = {}
   } catch (error) {
     console.warn("Public properties request failed. Returning empty list.", error);
     return { items: [], page: query.page ?? 1, pageSize: query.pageSize ?? 12, totalItems: 0, totalPages: 0 };
+  }
+}
+
+export async function getPublicPropertyDetail(propertyId: string): Promise<PublicPropertyDetail | null> {
+  try {
+    const response = await fetch(apiUrl(`/properties/public/${propertyId}`), {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      console.warn(`Public property detail request failed with status ${response.status}.`);
+      return null;
+    }
+
+    return (await response.json()) as PublicPropertyDetail;
+  } catch (error) {
+    console.warn("Public property detail request failed.", error);
+    return null;
   }
 }

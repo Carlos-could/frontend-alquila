@@ -368,6 +368,20 @@ Criterios de aceptación:
 Dependencias: F2-T05, F2-T03
 Definición de hecho:
 - Eventos analíticos de vista de detalle
+Scope: FULLSTACK
+Estado: BE: Done | FE: Done
+Evidencia:
+- Backend:
+  - Endpoint público de detalle implementado en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`: `GET /properties/public/{id}`.
+  - Respuesta de detalle agregada en `backend-alquila/src/Features/Properties/PropertyModels.cs` (`PublicPropertyDetailResponse`) con galería y relacionados por ciudad.
+  - Regla pública aplicada: responde `404` cuando el inmueble no existe o no está en estado `publicado`.
+  - Cobertura de integración agregada en `backend-alquila/tests/Backend.Alquila.Tests/PropertiesAuthorizationIntegrationTests.cs` para casos `200` (publicado) y `404` (inexistente/no publicado).
+- Frontend:
+  - Cliente de detalle público implementado en `src/features/properties/public-api.ts` (`getPublicPropertyDetail`).
+  - Página dinámica de detalle implementada en `src/app/inmuebles/[id]/page.tsx` con datos completos, galería, disponibilidad, CTA “Solicitar” y relacionados por ciudad.
+  - Navegación al detalle conectada desde cards públicas en `src/components/property-card.tsx`.
+  - Evento analítico de vista de detalle implementado en `src/features/properties/property-detail-view-tracker.tsx` con `logger.info("properties.detail.viewed", ...)`.
+  - Estilos de detalle/relacionados agregados en `src/app/globals.css`.
 
 ### F2-T07 - Validaciones y reglas de negocio
 Prioridad: P1
