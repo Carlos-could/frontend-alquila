@@ -54,9 +54,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - `README.md` documenta ejecución con `dotnet run`.
-  - Archivos base presentes: `.editorconfig`, `.gitignore`, `README.md`.
-  - Dominios base presentes en `src/Features`: `Auth`, `Properties`, `Applications`, `Messaging`.
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): ejecución, estructura base y dominios iniciales.
 - Frontend:
   - `README.md` documenta ejecución en 1 comando y estructura inicial.
   - Archivos base presentes: `.editorconfig`, `.gitignore`, `README.md`.
@@ -78,10 +76,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - `.env.example` presente con variables críticas.
-  - Validación fail-fast: `src/Infrastructure/Configuration/EnvironmentValidator.cs`.
-  - Carga de `.env`: `src/Infrastructure/Configuration/DotEnvLoader.cs`.
-  - Variables documentadas en `README.md`.
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): variables críticas, carga segura y validación fail-fast.
 - Frontend:
   - `.env.example` creado con variables públicas críticas.
   - `src/config/env.ts` valida variables requeridas y falla con mensaje claro si faltan.
@@ -104,9 +99,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - JWT bearer configurado en `Program.cs` con issuer de Supabase.
-  - Endpoint protegido `GET /auth/me` implementado.
-  - Integración de autenticación activa con `UseAuthentication`.
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): JWT bearer, endpoint `GET /auth/me` y autenticación activa.
 - Frontend:
   - Registro/login/logout implementados contra Supabase Auth.
   - Cliente Supabase en `src/features/auth/supabase-client.ts`.
@@ -130,10 +123,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - Roles tipados en `src/Features/Auth/UserRoles.cs`.
-  - Policies por rol en `src/Features/Auth/AuthorizationPolicies.cs`.
-  - Endpoints protegidos por policy: `/inquilino`, `/propietario`, `/admin`.
-  - Pruebas de autorización: `tests/Backend.Alquila.Tests/AuthorizationIntegrationTests.cs`.
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): roles tipados, policies y pruebas de autorización.
 - Frontend:
   - Roles tipados y permisos por ruta en `src/features/auth/roles.ts`.
   - Guard de autorización reutilizable en `src/features/auth/route-guard.tsx`.
@@ -155,11 +145,7 @@ Definición de hecho:
 Scope: BE
 Estado: Done
 Evidencia:
-- Migraciones versionadas creadas en backend: `database/migrations/0001_initial_schema.up.sql` y `database/migrations/0001_initial_schema.down.sql`.
-- Tablas base implementadas en migración inicial: `users`, `properties`, `applications`, `documents`, `messages`, `deals`.
-- Runner de migraciones implementado en backend con comandos: `dotnet run -- migrate up` y `dotnet run -- migrate down`.
-- Validación operativa ejecutada: `dotnet run -- migrate up` con resultado `Applied migration: 0001_initial_schema` y `Migration up finished.`.
-- Diagrama simple de entidades documentado en backend: `docs/data-model.md`.
+- Evidencia backend registrada en repositorio backend (fuera de este frontend): migraciones iniciales, runner `up/down` y diagrama de entidades.
 
 ### F1-T06 - CI básico
 Prioridad: P1
@@ -177,9 +163,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - Workflow CI implementado en `.github/workflows/ci.yml`.
-  - Disparadores configurados: `pull_request` y `push` sobre rama `main`.
-  - Etapas implementadas: lint (`dotnet format`), build (`dotnet build`) y test (`dotnet test tests/Backend.Alquila.Tests/Backend.Alquila.Tests.csproj`).
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): workflow CI con lint, build y test en `main`.
 - Frontend:
   - Workflow CI implementado en `.github/workflows/ci.yml`.
   - Disparadores configurados: `pull_request` y `push` sobre rama `main`.
@@ -200,11 +184,7 @@ Definición de hecho:
 Scope: BE
 Estado: Done
 Evidencia:
-- Configuración de despliegue staging agregada en backend con Docker (`Dockerfile`) y blueprint de Render (`render.yaml`).
-- Pipeline de despliegue automático implementado en `.github/workflows/deploy-staging.yml` (trigger en `push` a `main` + `workflow_dispatch`).
-- Healthcheck de staging estandarizado en endpoint `GET /health` y validado en workflow contra `STAGING_HEALTHCHECK_URL`.
-- Soporte de puerto dinámico de plataforma agregado en backend para entornos cloud (`PORT` en `Program.cs`).
-- Runbook corto documentado en backend: `docs/staging-deploy-runbook.md`.
+- Evidencia backend registrada en repositorio backend (fuera de este frontend): despliegue staging, healthcheck `GET /health` y runbook operativo.
 
 ### F1-T08 - Observabilidad mínima
 Prioridad: P2
@@ -221,9 +201,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - Manejo central de errores con `AddProblemDetails` y `UseExceptionHandler` en `Program.cs`.
-  - Variable `SENTRY_DSN` declarada como opción de observabilidad en `.env.example` y `README.md`.
-  - Guía de troubleshooting en `docs/troubleshooting-observability.md`.
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): manejo central de errores, Sentry y guía de troubleshooting.
 - Frontend:
   - Logging estructurado en JSON implementado en `src/features/observability/logger.ts`.
   - Normalización central de errores en `src/features/observability/errors.ts`.
@@ -263,9 +241,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - Endpoint `POST /properties` implementado en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`.
-  - Endpoint `PATCH /properties/{id}` implementado en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`.
-  - Regla de autorización por dueño/admin validada en `backend-alquila/tests/Backend.Alquila.Tests/PropertiesAuthorizationIntegrationTests.cs`.
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): endpoints `POST /properties`, `PATCH /properties/{id}` y autorización dueño/admin.
 - Frontend:
   - Cliente API autenticado (Bearer Supabase) implementado en `src/features/properties/api.ts`.
   - Panel de propietario con formularios de crear/editar integrado en `src/features/properties/property-management-panel.tsx`.
@@ -289,13 +265,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - Migración de galería implementada en `backend-alquila/database/migrations/0003_property_images.up.sql` y rollback en `0003_property_images.down.sql`.
-  - Endpoints de imágenes implementados en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`:
-    - `GET /properties/{id}/images`
-    - `POST /properties/{id}/images`
-    - `PATCH /properties/{id}/images/order`
-  - Validaciones de subida: formato (`image/jpeg`, `image/png`, `image/webp`), tamaño máximo (5 MB) y límite total por inmueble (15).
-  - Persistencia de imágenes y orden en `backend-alquila/src/Features/Properties/NpgsqlPropertiesRepository.cs`.
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): migración de galería, endpoints de imágenes, validaciones y persistencia de orden.
 - Frontend:
   - Cliente de galería implementado en `src/features/properties/api.ts` (`listPropertyImages`, `uploadPropertyImages`, `reorderPropertyImages`).
   - UI de galería en panel propietario (subida múltiple, orden manual y mensajes de error) en `src/features/properties/property-management-panel.tsx`.
@@ -317,13 +287,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - Acción de moderación admin implementada en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`:
-    - `PATCH /properties/{id}/moderation`
-    - `GET /properties/moderation/pending`
-    - `GET /properties/{id}/status-history`
-  - Historial de cambios de estado persistido con migración `backend-alquila/database/migrations/0004_property_status_history.up.sql`.
-  - Listado público restringido a `publicado` en `GET /properties/public`.
-  - Pruebas de moderación y listado público en `backend-alquila/tests/Backend.Alquila.Tests/PropertiesAuthorizationIntegrationTests.cs`.
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): moderación admin, historial de estado y listado público restringido a `publicado`.
 - Frontend:
   - Panel admin para aprobar/rechazar pendientes en `src/features/properties/admin-moderation-panel.tsx` y `src/app/admin/page.tsx`.
   - Home público consume `GET /properties/public` en `src/app/page.tsx` con cliente `src/features/properties/public-api.ts`.
@@ -345,11 +309,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - Endpoint `GET /properties/public` extendido con filtros, orden y paginación en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`.
-  - Búsqueda pública parametrizable implementada en repositorio PostgreSQL en `backend-alquila/src/Features/Properties/NpgsqlPropertiesRepository.cs`.
-  - Contrato de búsqueda pública (`PublicPropertySearchParams`, `PublicPropertySearchResponse`) agregado en `backend-alquila/src/Features/Properties/PropertyModels.cs`.
-  - Cobertura de integración para filtros combinados y validaciones en `backend-alquila/tests/Backend.Alquila.Tests/PropertiesAuthorizationIntegrationTests.cs`.
-  - Verificación técnica local: `dotnet test tests/Backend.Alquila.Tests/Backend.Alquila.Tests.csproj --filter "FullyQualifiedName~PropertiesAuthorizationIntegrationTests"`.
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): búsqueda pública con filtros/orden/paginación y cobertura de integración.
 - Frontend:
   - Cliente público con query params y respuesta paginada en `src/features/properties/public-api.ts`.
   - Home pública conectada a filtros/orden/paginación vía `searchParams` en `src/app/page.tsx`.
@@ -372,10 +332,7 @@ Scope: FULLSTACK
 Estado: BE: Done | FE: Done
 Evidencia:
 - Backend:
-  - Endpoint público de detalle implementado en `backend-alquila/src/Features/Properties/PropertyEndpoints.cs`: `GET /properties/public/{id}`.
-  - Respuesta de detalle agregada en `backend-alquila/src/Features/Properties/PropertyModels.cs` (`PublicPropertyDetailResponse`) con galería y relacionados por ciudad.
-  - Regla pública aplicada: responde `404` cuando el inmueble no existe o no está en estado `publicado`.
-  - Cobertura de integración agregada en `backend-alquila/tests/Backend.Alquila.Tests/PropertiesAuthorizationIntegrationTests.cs` para casos `200` (publicado) y `404` (inexistente/no publicado).
+  - Evidencia backend registrada en repositorio backend (fuera de este frontend): endpoint de detalle público, contrato de respuesta, regla `404` y pruebas de integración.
 - Frontend:
   - Cliente de detalle público implementado en `src/features/properties/public-api.ts` (`getPublicPropertyDetail`).
   - Página dinámica de detalle implementada en `src/app/inmuebles/[id]/page.tsx` con datos completos, galería, disponibilidad, CTA “Solicitar” y relacionados por ciudad.
