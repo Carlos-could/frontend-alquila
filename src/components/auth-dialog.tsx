@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { loginWithEmailPassword, registerWithEmailPassword } from "@/features/auth/storage";
 import { getErrorMessage, normalizeError } from "@/features/observability/errors";
 import { logger } from "@/features/observability/logger";
@@ -58,27 +61,40 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
   }
 
   return (
-    <div className="auth-dialog-overlay" role="presentation" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-20 grid place-items-center bg-slate-900/45 p-4"
+      role="presentation"
+      onClick={onClose}
+    >
       <div
-        className="auth-dialog"
+        className="w-full max-w-[420px] rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="auth-dialog-head">
-          <h2>{title}</h2>
-          <button type="button" className="auth-close" onClick={onClose} aria-label="Cerrar">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="font-[var(--font-heading)] text-2xl font-semibold text-slate-900">{title}</h2>
+          <button
+            type="button"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            onClick={onClose}
+            aria-label="Cerrar"
+          >
             x
           </button>
         </div>
 
-        <div className="auth-mode-switch" role="tablist" aria-label="Seleccionar modo de autenticacion">
+        <div className="mb-3 grid grid-cols-2 gap-2" role="tablist" aria-label="Seleccionar modo de autenticacion">
           <button
             type="button"
             role="tab"
             aria-selected={mode === "login"}
-            className={mode === "login" ? "active" : ""}
+            className={
+              mode === "login"
+                ? "rounded-md border border-red-500 bg-red-50 px-3 py-2 text-sm font-semibold text-red-600"
+                : "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+            }
             onClick={() => setMode("login")}
           >
             Login
@@ -87,16 +103,20 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
             type="button"
             role="tab"
             aria-selected={mode === "register"}
-            className={mode === "register" ? "active" : ""}
+            className={
+              mode === "register"
+                ? "rounded-md border border-red-500 bg-red-50 px-3 py-2 text-sm font-semibold text-red-600"
+                : "rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+            }
             onClick={() => setMode("register")}
           >
             Registro
           </button>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label htmlFor="auth-email">Email</label>
-          <input
+        <form className="grid gap-2" onSubmit={handleSubmit}>
+          <Label htmlFor="auth-email">Email</Label>
+          <Input
             id="auth-email"
             type="email"
             autoComplete="email"
@@ -105,8 +125,8 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
             required
           />
 
-          <label htmlFor="auth-password">Contrasena</label>
-          <input
+          <Label htmlFor="auth-password">Contrasena</Label>
+          <Input
             id="auth-password"
             type="password"
             autoComplete={mode === "login" ? "current-password" : "new-password"}
@@ -118,8 +138,8 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
 
           {mode === "register" ? (
             <>
-              <label htmlFor="auth-confirm-password">Repetir contrasena</label>
-              <input
+              <Label htmlFor="auth-confirm-password">Repetir contrasena</Label>
+              <Input
                 id="auth-confirm-password"
                 type="password"
                 autoComplete="new-password"
@@ -131,11 +151,11 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
             </>
           ) : null}
 
-          {error ? <p className="auth-error">{error}</p> : null}
+          {error ? <p className="text-sm font-semibold text-red-700">{error}</p> : null}
 
-          <button type="submit" className="btn-save" disabled={loading}>
+          <Button type="submit" className="mt-2" disabled={loading}>
             {loading ? "Procesando..." : mode === "login" ? "Entrar" : "Crear cuenta"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

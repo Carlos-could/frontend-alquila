@@ -2,6 +2,13 @@
 
 Base UI para el MVP inmobiliario.
 
+## Stack frontend (ADR-001)
+
+- Next.js (App Router) + TypeScript
+- Tailwind CSS (v4)
+- shadcn/ui (base `components/ui` + `cn`)
+- React Hook Form + Zod para formularios
+
 ## Ejecutar (1 comando)
 
 ```bash

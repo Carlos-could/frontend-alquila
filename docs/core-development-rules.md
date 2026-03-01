@@ -61,3 +61,10 @@ Estado: vigente
 - Cada ticket que cambie comportamiento debe actualizar docs relevantes.
 - Nuevos riesgos o bugs de terceros van a `docs/known-issues.md`.
 - PR debe incluir evidencia corta de validación (build/tests/checklist DoD).
+
+## 10) Stack Frontend obligatorio (ADR-001)
+
+- Todo estilo nuevo debe implementarse con Tailwind CSS + componentes `shadcn/ui` cuando aplique.
+- Formularios nuevos o refactors de formularios existentes deben usar `react-hook-form` + `zod`.
+- No introducir nuevos formularios con `useState` campo por campo salvo excepción documentada en ticket/PR.
+- Si un cambio se desvía del ADR (`docs/architecture/adr-001-stack.md`), justificarlo explícitamente y proponer mitigación.

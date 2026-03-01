@@ -3,7 +3,7 @@ import { PropertyManagementPanel } from "@/features/properties/property-manageme
 
 export default function PropietarioPage() {
   return (
-    <main className="protected-shell">
+    <main className="min-h-dvh grid place-items-center p-6">
       <RouteGuard allowedRoles={["propietario", "admin"]}>
         <PropertyManagementPanel />
       </RouteGuard>

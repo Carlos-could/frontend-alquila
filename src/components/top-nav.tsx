@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AuthDialog } from "@/components/auth-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { getSession, logout, subscribeToAuthChanges, type AuthSession } from "@/features/auth/storage";
 import { normalizeError } from "@/features/observability/errors";
 import { logger } from "@/features/observability/logger";
@@ -50,26 +52,32 @@ export function TopNav() {
 
   return (
     <>
-      <header className="top-nav">
-        <div className="brand">Alquila</div>
+      <header className="grid items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:grid-cols-[auto_minmax(220px,520px)_1fr_auto]">
+        <div className="font-[var(--font-heading)] text-3xl font-bold leading-none text-red-600">Alquila</div>
 
-        <label className="search-wrap" htmlFor="city-search">
-          <span className="search-icon">⌕</span>
-          <input id="city-search" defaultValue="Berlin" aria-label="Buscar ciudad" />
+        <label className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2" htmlFor="city-search">
+          <span aria-hidden="true">⌕</span>
+          <Input id="city-search" defaultValue="Berlin" aria-label="Buscar ciudad" className="h-auto border-0 bg-transparent p-0 shadow-none focus-visible:ring-0" />
         </label>
 
-        <nav className="top-links" aria-label="Navegación principal">
-          <Link href="/">Inicio</Link>
-          <Link href="/propietario">Propietario</Link>
-          <Link href="/admin">Admin</Link>
+        <nav className="hidden items-center justify-center gap-5 text-sm font-medium text-slate-600 lg:flex" aria-label="Navegación principal">
+          <Link className="hover:text-slate-900" href="/">
+            Inicio
+          </Link>
+          <Link className="hover:text-slate-900" href="/propietario">
+            Propietario
+          </Link>
+          <Link className="hover:text-slate-900" href="/admin">
+            Admin
+          </Link>
         </nav>
 
-        <div className="auth-controls">
-          {isLoggedIn ? <span className="auth-user">{session.email}</span> : null}
-          {isLoggedIn ? <span className="auth-role">{session.role}</span> : null}
-          <button type="button" className="btn-auth" onClick={handleAuthClick}>
+        <div className="inline-flex items-center gap-2">
+          {isLoggedIn ? <span className="max-w-52 truncate text-sm font-semibold text-slate-600">{session.email}</span> : null}
+          {isLoggedIn ? <span className="rounded-full border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600">{session.role}</span> : null}
+          <Button type="button" onClick={handleAuthClick}>
             {isLoggedIn ? "Cerrar sesión" : "Join / Sign in"}
-          </button>
+          </Button>
         </div>
       </header>
 

@@ -86,7 +86,7 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
   }));
 
   return (
-    <main className="app-shell">
+    <main className="min-h-dvh bg-gradient-to-b from-slate-100 to-slate-50 p-3">
       <TopNav />
       <FilterBar
         city={city}
@@ -98,27 +98,31 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
         pageSize={String(pageSize)}
       />
 
-      <section className="content-header">
-        <h1>Listado publico de inmuebles</h1>
-        <p>
+      <section className="mt-4 flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h1 className="text-2xl font-bold text-slate-900">Listado publico de inmuebles</h1>
+        <p className="text-sm text-slate-600">
           {propertiesResult.totalItems} resultados | Pagina {propertiesResult.page}
           {propertiesResult.totalPages > 0 ? ` de ${propertiesResult.totalPages}` : ""}
         </p>
       </section>
 
-      <section className="content-grid">
-        <div className="listing-pane">
-          <div className="cards-grid">
+      <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
             {cards.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
-          {cards.length === 0 ? <p className="empty-state">No hay inmuebles para esos filtros.</p> : null}
-          <div className="pagination">
+          {cards.length === 0 ? <p className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">No hay inmuebles para esos filtros.</p> : null}
+          <div className="flex items-center gap-2">
             <Link
               href={getPageHref(resolvedSearchParams, Math.max(1, propertiesResult.page - 1))}
               aria-disabled={propertiesResult.page <= 1}
-              className={propertiesResult.page <= 1 ? "page-link disabled" : "page-link"}
+              className={
+                propertiesResult.page <= 1
+                  ? "pointer-events-none inline-flex h-10 items-center rounded-md border border-slate-200 px-4 text-sm text-slate-400"
+                  : "inline-flex h-10 items-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
+              }
             >
               Anterior
             </Link>
@@ -127,8 +131,8 @@ export default async function HomePage({ searchParams }: { searchParams?: Promis
               aria-disabled={propertiesResult.totalPages > 0 && propertiesResult.page >= propertiesResult.totalPages}
               className={
                 propertiesResult.totalPages > 0 && propertiesResult.page >= propertiesResult.totalPages
-                  ? "page-link disabled"
-                  : "page-link"
+                  ? "pointer-events-none inline-flex h-10 items-center rounded-md border border-slate-200 px-4 text-sm text-slate-400"
+                  : "inline-flex h-10 items-center rounded-md border border-slate-300 bg-white px-4 text-sm font-medium hover:bg-slate-50"
               }
             >
               Siguiente

@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type FilterBarProps = {
   city: string;
@@ -12,52 +15,52 @@ type FilterBarProps = {
 
 export function FilterBar({ city, minPrice, maxPrice, bedrooms, furnished, sort, pageSize }: FilterBarProps) {
   return (
-    <form className="filter-bar" aria-label="Filtros de propiedades" method="GET" action="/">
-      <label>
+    <form className="mt-3 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-[repeat(7,minmax(0,1fr))_auto_auto]" aria-label="Filtros de propiedades" method="GET" action="/">
+      <Label>
         Ciudad
-        <input name="city" defaultValue={city} placeholder="Ej: Madrid" />
-      </label>
-      <label>
+        <Input name="city" defaultValue={city} placeholder="Ej: Madrid" />
+      </Label>
+      <Label>
         Precio min
-        <input name="minPrice" type="number" min="0" step="1" defaultValue={minPrice} />
-      </label>
-      <label>
+        <Input name="minPrice" type="number" min="0" step="1" defaultValue={minPrice} />
+      </Label>
+      <Label>
         Precio max
-        <input name="maxPrice" type="number" min="0" step="1" defaultValue={maxPrice} />
-      </label>
-      <label>
+        <Input name="maxPrice" type="number" min="0" step="1" defaultValue={maxPrice} />
+      </Label>
+      <Label>
         Habitaciones
-        <input name="bedrooms" type="number" min="0" step="1" defaultValue={bedrooms} />
-      </label>
-      <label>
+        <Input name="bedrooms" type="number" min="0" step="1" defaultValue={bedrooms} />
+      </Label>
+      <Label>
         Amueblado
-        <select name="isFurnished" defaultValue={furnished}>
+        <select className="h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm" name="isFurnished" defaultValue={furnished}>
           <option value="">Todos</option>
           <option value="true">Si</option>
           <option value="false">No</option>
         </select>
-      </label>
-      <label>
+      </Label>
+      <Label>
         Orden
-        <select name="sort" defaultValue={sort}>
+        <select className="h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm" name="sort" defaultValue={sort}>
           <option value="newest">Mas recientes</option>
           <option value="price_asc">Menor precio</option>
           <option value="price_desc">Mayor precio</option>
         </select>
-      </label>
-      <label>
+      </Label>
+      <Label>
         Tamano pagina
-        <select name="pageSize" defaultValue={pageSize}>
+        <select className="h-10 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm" name="pageSize" defaultValue={pageSize}>
           <option value="6">6</option>
           <option value="12">12</option>
           <option value="24">24</option>
         </select>
-      </label>
+      </Label>
       <input type="hidden" name="page" value="1" />
-      <button type="submit" className="btn-save">
+      <Button type="submit" className="self-end">
         Aplicar
-      </button>
-      <Link href="/" className="btn-clear">
+      </Button>
+      <Link href="/" className="inline-flex h-10 items-center justify-center rounded-md border border-slate-300 px-4 text-sm font-medium hover:bg-slate-50">
         Limpiar
       </Link>
     </form>

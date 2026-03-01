@@ -1,8 +1,16 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { env } from "@/config/env";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   createProperty,
   listPropertyImages,
@@ -18,40 +26,49 @@ import { getErrorMessage } from "@/features/observability/errors";
 const CONTRACT_OPTIONS: PropertyUpsertRequest["contractType"][] = ["long_term", "temporary", "monthly"];
 const STATUS_OPTIONS: PropertyUpsertRequest["status"][] = ["pendiente", "publicado", "rechazado"];
 
-type CreateFormState = {
-  title: string;
-  description: string;
-  city: string;
-  neighborhood: string;
-  address: string;
-  monthlyPrice: string;
-  depositAmount: string;
-  bedrooms: string;
-  bathrooms: string;
-  areaM2: string;
-  isFurnished: boolean;
-  availableFrom: string;
-  contractType: PropertyUpsertRequest["contractType"];
-  status: PropertyUpsertRequest["status"];
-};
+const createPropertySchema = z.object({
+  title: z.string().trim().min(1, "Titulo obligatorio."),
+  description: z.string().trim().optional(),
+  city: z.string().trim().min(1, "Ciudad obligatoria."),
+  neighborhood: z.string().trim().optional(),
+  address: z.string().trim().optional(),
+  monthlyPrice: z.number().positive("El precio mensual debe ser mayor a 0."),
+  depositAmount: z.number().min(0, "El deposito no puede ser negativo."),
+  bedrooms: z.number().int().min(0, "Habitaciones invalidas."),
+  bathrooms: z.number().int().min(0, "Banos invalidos."),
+  areaM2: z.number().positive("El area debe ser mayor a 0."),
+  isFurnished: z.boolean(),
+  availableFrom: z.string().min(1, "Fecha obligatoria."),
+  contractType: z.enum(["long_term", "temporary", "monthly"]),
+  status: z.enum(["pendiente", "publicado", "rechazado"]),
+});
 
-type PatchFormState = {
-  id: string;
-  title: string;
-  description: string;
-  city: string;
-  neighborhood: string;
-  address: string;
-  monthlyPrice: string;
-  depositAmount: string;
-  bedrooms: string;
-  bathrooms: string;
-  areaM2: string;
-  isFurnished: "" | "true" | "false";
-  availableFrom: string;
-  contractType: "" | PropertyUpsertRequest["contractType"];
-  status: "" | PropertyUpsertRequest["status"];
-};
+const patchPropertySchema = z.object({
+  id: z.string().trim().min(1, "ID obligatorio."),
+  title: z.string().optional(),
+  description: z.string().optional(),
+  city: z.string().optional(),
+  neighborhood: z.string().optional(),
+  address: z.string().optional(),
+  monthlyPrice: z.union([z.number(), z.nan()]).optional(),
+  depositAmount: z.union([z.number(), z.nan()]).optional(),
+  bedrooms: z.union([z.number(), z.nan()]).optional(),
+  bathrooms: z.union([z.number(), z.nan()]).optional(),
+  areaM2: z.union([z.number(), z.nan()]).optional(),
+  isFurnished: z.enum(["", "true", "false"]),
+  availableFrom: z.string().optional(),
+  contractType: z.enum(["", "long_term", "temporary", "monthly"]),
+  status: z.enum(["", "pendiente", "publicado", "rechazado"]),
+});
+
+const gallerySchema = z.object({
+  propertyId: z.string().trim().min(1, "ID del inmueble obligatorio."),
+  files: z.array(z.instanceof(File)).min(1, "Selecciona al menos una imagen.").max(15, "Maximo 15 imagenes."),
+});
+
+type CreatePropertyFormValues = z.infer<typeof createPropertySchema>;
+type PatchPropertyFormValues = z.infer<typeof patchPropertySchema>;
+type GalleryFormValues = z.infer<typeof gallerySchema>;
 
 function todayIsoDate(): string {
   const now = new Date();
@@ -59,18 +76,18 @@ function todayIsoDate(): string {
   return new Date(now.getTime() - timezoneOffsetMs).toISOString().slice(0, 10);
 }
 
-function initialCreateState(): CreateFormState {
+function initialCreateValues(): CreatePropertyFormValues {
   return {
     title: "",
-    description: "",
+    description: undefined,
     city: "",
-    neighborhood: "",
-    address: "",
-    monthlyPrice: "",
-    depositAmount: "0",
-    bedrooms: "0",
-    bathrooms: "0",
-    areaM2: "",
+    neighborhood: undefined,
+    address: undefined,
+    monthlyPrice: 0,
+    depositAmount: 0,
+    bedrooms: 0,
+    bathrooms: 0,
+    areaM2: 0,
     isFurnished: false,
     availableFrom: todayIsoDate(),
     contractType: "long_term",
@@ -78,7 +95,7 @@ function initialCreateState(): CreateFormState {
   };
 }
 
-function initialPatchState(): PatchFormState {
+function initialPatchValues(): PatchPropertyFormValues {
   return {
     id: "",
     title: "",
@@ -86,11 +103,11 @@ function initialPatchState(): PatchFormState {
     city: "",
     neighborhood: "",
     address: "",
-    monthlyPrice: "",
-    depositAmount: "",
-    bedrooms: "",
-    bathrooms: "",
-    areaM2: "",
+    monthlyPrice: Number.NaN,
+    depositAmount: Number.NaN,
+    bedrooms: Number.NaN,
+    bathrooms: Number.NaN,
+    areaM2: Number.NaN,
     isFurnished: "",
     availableFrom: "",
     contractType: "",
@@ -98,72 +115,117 @@ function initialPatchState(): PatchFormState {
   };
 }
 
-function maybeNumber(value: string): number | undefined {
-  if (value.trim() === "") {
-    return undefined;
-  }
-  return Number(value);
+function initialGalleryValues(): GalleryFormValues {
+  return {
+    propertyId: "",
+    files: [],
+  };
 }
 
-function maybeInt(value: string): number | undefined {
-  if (value.trim() === "") {
+function maybeNumber(value: number | undefined): number | undefined {
+  if (value === undefined || Number.isNaN(value)) {
     return undefined;
   }
-  return Number.parseInt(value, 10);
+  return value;
+}
+
+function maybeInt(value: number | undefined): number | undefined {
+  if (value === undefined || Number.isNaN(value)) {
+    return undefined;
+  }
+  return Number.parseInt(String(value), 10);
+}
+
+function maybeText(value: string | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 export function PropertyManagementPanel() {
-  const [createForm, setCreateForm] = useState<CreateFormState>(() => initialCreateState());
-  const [patchForm, setPatchForm] = useState<PatchFormState>(() => initialPatchState());
   const [createError, setCreateError] = useState<string | null>(null);
   const [patchError, setPatchError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [gallery, setGallery] = useState<PropertyImageResponse[]>([]);
+  const [imagesError, setImagesError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isPatching, setIsPatching] = useState(false);
-  const [gallery, setGallery] = useState<PropertyImageResponse[]>([]);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [imagesError, setImagesError] = useState<string | null>(null);
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
 
-  const canCreate = useMemo(() => {
-    return (
-      createForm.title.trim().length > 0 &&
-      createForm.city.trim().length > 0 &&
-      createForm.monthlyPrice.trim().length > 0 &&
-      createForm.areaM2.trim().length > 0 &&
-      createForm.availableFrom.trim().length > 0
-    );
-  }, [createForm]);
+  const createForm = useForm<CreatePropertyFormValues>({
+    resolver: zodResolver(createPropertySchema),
+    mode: "onChange",
+    defaultValues: initialCreateValues(),
+  });
+  const patchForm = useForm<PatchPropertyFormValues>({
+    resolver: zodResolver(patchPropertySchema),
+    mode: "onChange",
+    defaultValues: initialPatchValues(),
+  });
+  const galleryForm = useForm<GalleryFormValues>({
+    resolver: zodResolver(gallerySchema),
+    mode: "onChange",
+    defaultValues: initialGalleryValues(),
+  });
 
-  async function handleCreateSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const {
+    register: registerCreate,
+    handleSubmit: handleSubmitCreate,
+    reset: resetCreate,
+    formState: { errors: createFormErrors, isValid: isCreateValid },
+  } = createForm;
+  const {
+    register: registerPatch,
+    handleSubmit: handleSubmitPatch,
+    reset: resetPatch,
+    setValue: setPatchValue,
+    formState: { errors: patchFormErrors, isValid: isPatchValid },
+  } = patchForm;
+  const {
+    register: registerGallery,
+    handleSubmit: handleSubmitGallery,
+    reset: resetGallery,
+    setValue: setGalleryValue,
+    getValues: getGalleryValues,
+    formState: { errors: galleryFormErrors, isValid: isGalleryValid },
+  } = galleryForm;
+
+  const galleryPropertyId = getGalleryValues("propertyId");
+  const galleryPropertyIdField = registerGallery("propertyId");
+  const galleryFilesField = registerGallery("files", {
+    setValueAs: (value: FileList | null) => Array.from(value ?? []),
+  });
+
+  async function handleCreateSubmit(values: CreatePropertyFormValues) {
     setCreateError(null);
     setSuccessMessage(null);
     setIsCreating(true);
 
     try {
       const payload: PropertyUpsertRequest = {
-        title: createForm.title,
-        description: createForm.description,
-        city: createForm.city,
-        neighborhood: createForm.neighborhood,
-        address: createForm.address,
-        monthlyPrice: Number(createForm.monthlyPrice),
-        depositAmount: Number(createForm.depositAmount),
-        bedrooms: Number.parseInt(createForm.bedrooms, 10),
-        bathrooms: Number.parseInt(createForm.bathrooms, 10),
-        areaM2: Number(createForm.areaM2),
-        isFurnished: createForm.isFurnished,
-        availableFrom: createForm.availableFrom,
-        contractType: createForm.contractType,
-        status: createForm.status,
+        title: values.title,
+        description: values.description ?? "",
+        city: values.city,
+        neighborhood: values.neighborhood ?? "",
+        address: values.address ?? "",
+        monthlyPrice: values.monthlyPrice,
+        depositAmount: values.depositAmount,
+        bedrooms: values.bedrooms,
+        bathrooms: values.bathrooms,
+        areaM2: values.areaM2,
+        isFurnished: values.isFurnished,
+        availableFrom: values.availableFrom,
+        contractType: values.contractType,
+        status: values.status,
       };
 
       const created = await createProperty(payload);
       setSuccessMessage(`Inmueble creado: ${created.id}`);
-      setCreateForm(initialCreateState());
+      resetCreate(initialCreateValues());
     } catch (error) {
       setCreateError(getErrorMessage(error, "No se pudo crear el inmueble."));
     } finally {
@@ -171,34 +233,33 @@ export function PropertyManagementPanel() {
     }
   }
 
-  async function handlePatchSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handlePatchSubmit(values: PatchPropertyFormValues) {
     setPatchError(null);
     setSuccessMessage(null);
     setIsPatching(true);
 
     try {
       const payload: PropertyPatchRequest = {
-        title: patchForm.title || undefined,
-        description: patchForm.description || undefined,
-        city: patchForm.city || undefined,
-        neighborhood: patchForm.neighborhood || undefined,
-        address: patchForm.address || undefined,
-        monthlyPrice: maybeNumber(patchForm.monthlyPrice),
-        depositAmount: maybeNumber(patchForm.depositAmount),
-        bedrooms: maybeInt(patchForm.bedrooms),
-        bathrooms: maybeInt(patchForm.bathrooms),
-        areaM2: maybeNumber(patchForm.areaM2),
-        isFurnished:
-          patchForm.isFurnished === "true" ? true : patchForm.isFurnished === "false" ? false : undefined,
-        availableFrom: patchForm.availableFrom || undefined,
-        contractType: patchForm.contractType || undefined,
-        status: patchForm.status || undefined,
+        title: maybeText(values.title),
+        description: maybeText(values.description),
+        city: maybeText(values.city),
+        neighborhood: maybeText(values.neighborhood),
+        address: maybeText(values.address),
+        monthlyPrice: maybeNumber(values.monthlyPrice),
+        depositAmount: maybeNumber(values.depositAmount),
+        bedrooms: maybeInt(values.bedrooms),
+        bathrooms: maybeInt(values.bathrooms),
+        areaM2: maybeNumber(values.areaM2),
+        isFurnished: values.isFurnished === "true" ? true : values.isFurnished === "false" ? false : undefined,
+        availableFrom: maybeText(values.availableFrom),
+        contractType: values.contractType || undefined,
+        status: values.status || undefined,
       };
 
-      const updated = await patchProperty(patchForm.id.trim(), payload);
+      const updated = await patchProperty(values.id.trim(), payload);
       setSuccessMessage(`Inmueble actualizado: ${updated.id}`);
-      setPatchForm(initialPatchState());
+      setGalleryValue("propertyId", values.id.trim(), { shouldValidate: true });
+      resetPatch(initialPatchValues());
     } catch (error) {
       setPatchError(getErrorMessage(error, "No se pudo editar el inmueble."));
     } finally {
@@ -220,27 +281,15 @@ export function PropertyManagementPanel() {
     }
   }
 
-  async function handleUploadImages(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const propertyId = patchForm.id.trim();
-    if (propertyId.length === 0) {
-      setImagesError("Ingresa el ID del inmueble para subir imagenes.");
-      return;
-    }
-
-    if (imageFiles.length === 0) {
-      setImagesError("Selecciona al menos una imagen.");
-      return;
-    }
-
+  async function handleUploadImages(values: GalleryFormValues) {
     setImagesError(null);
     setSuccessMessage(null);
     setIsUploadingImages(true);
 
     try {
-      await uploadPropertyImages(propertyId, imageFiles);
-      await loadGallery(propertyId);
-      setImageFiles([]);
+      await uploadPropertyImages(values.propertyId.trim(), values.files);
+      await loadGallery(values.propertyId.trim());
+      resetGallery({ propertyId: values.propertyId.trim(), files: [] });
       setSuccessMessage("Imagenes subidas correctamente.");
     } catch (error) {
       setImagesError(getErrorMessage(error, "No se pudieron subir las imagenes."));
@@ -249,9 +298,8 @@ export function PropertyManagementPanel() {
     }
   }
 
-  async function handleSaveImageOrder() {
-    const propertyId = patchForm.id.trim();
-    if (propertyId.length === 0) {
+  async function handleSaveImageOrder(propertyId: string) {
+    if (propertyId.trim().length === 0) {
       setImagesError("Ingresa el ID del inmueble para guardar el orden.");
       return;
     }
@@ -262,7 +310,7 @@ export function PropertyManagementPanel() {
 
     try {
       const payload = gallery.map((image) => ({ imageId: image.id, displayOrder: image.displayOrder }));
-      const reordered = await reorderPropertyImages(propertyId, payload);
+      const reordered = await reorderPropertyImages(propertyId.trim(), payload);
       setGallery(reordered.sort((a, b) => a.displayOrder - b.displayOrder));
       setSuccessMessage("Orden de imagenes actualizado.");
     } catch (error) {
@@ -295,272 +343,156 @@ export function PropertyManagementPanel() {
       {successMessage ? <p className="property-success">{successMessage}</p> : null}
 
       <div className="property-management-grid">
-        <form className="property-form" onSubmit={handleCreateSubmit}>
+        <form className="property-form" onSubmit={handleSubmitCreate(handleCreateSubmit)}>
           <h2>Crear inmueble</h2>
-          <label>
+          <Label>
             Titulo
-            <input
-              value={createForm.title}
-              onChange={(event) => setCreateForm((prev) => ({ ...prev, title: event.target.value }))}
-              required
-            />
-          </label>
-          <label>
+            <Input {...registerCreate("title")} />
+          </Label>
+          {createFormErrors.title ? <p className="property-error">{createFormErrors.title.message}</p> : null}
+          <Label>
             Descripcion
-            <textarea
-              value={createForm.description}
-              onChange={(event) => setCreateForm((prev) => ({ ...prev, description: event.target.value }))}
-              rows={3}
-            />
-          </label>
-          <label>
+            <Textarea rows={3} {...registerCreate("description")} />
+          </Label>
+          <Label>
             Ciudad
-            <input
-              value={createForm.city}
-              onChange={(event) => setCreateForm((prev) => ({ ...prev, city: event.target.value }))}
-              required
-            />
-          </label>
-          <label>
+            <Input {...registerCreate("city")} />
+          </Label>
+          {createFormErrors.city ? <p className="property-error">{createFormErrors.city.message}</p> : null}
+          <Label>
             Barrio
-            <input
-              value={createForm.neighborhood}
-              onChange={(event) => setCreateForm((prev) => ({ ...prev, neighborhood: event.target.value }))}
-            />
-          </label>
-          <label>
+            <Input {...registerCreate("neighborhood")} />
+          </Label>
+          <Label>
             Direccion
-            <input
-              value={createForm.address}
-              onChange={(event) => setCreateForm((prev) => ({ ...prev, address: event.target.value }))}
-            />
-          </label>
+            <Input {...registerCreate("address")} />
+          </Label>
           <div className="property-form-inline">
-            <label>
+            <Label>
               Precio mensual
-              <input
-                type="number"
-                min={1}
-                step="0.01"
-                value={createForm.monthlyPrice}
-                onChange={(event) => setCreateForm((prev) => ({ ...prev, monthlyPrice: event.target.value }))}
-                required
-              />
-            </label>
-            <label>
+              <Input type="number" min={1} step="0.01" {...registerCreate("monthlyPrice", { valueAsNumber: true })} />
+            </Label>
+            <Label>
               Deposito
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                value={createForm.depositAmount}
-                onChange={(event) => setCreateForm((prev) => ({ ...prev, depositAmount: event.target.value }))}
-                required
-              />
-            </label>
+              <Input type="number" min={0} step="0.01" {...registerCreate("depositAmount", { valueAsNumber: true })} />
+            </Label>
           </div>
+          {createFormErrors.monthlyPrice ? <p className="property-error">{createFormErrors.monthlyPrice.message}</p> : null}
+          {createFormErrors.depositAmount ? <p className="property-error">{createFormErrors.depositAmount.message}</p> : null}
           <div className="property-form-inline">
-            <label>
+            <Label>
               Habitaciones
-              <input
-                type="number"
-                min={0}
-                value={createForm.bedrooms}
-                onChange={(event) => setCreateForm((prev) => ({ ...prev, bedrooms: event.target.value }))}
-                required
-              />
-            </label>
-            <label>
+              <Input type="number" min={0} {...registerCreate("bedrooms", { valueAsNumber: true })} />
+            </Label>
+            <Label>
               Banos
-              <input
-                type="number"
-                min={0}
-                value={createForm.bathrooms}
-                onChange={(event) => setCreateForm((prev) => ({ ...prev, bathrooms: event.target.value }))}
-                required
-              />
-            </label>
-            <label>
+              <Input type="number" min={0} {...registerCreate("bathrooms", { valueAsNumber: true })} />
+            </Label>
+            <Label>
               m2
-              <input
-                type="number"
-                min={1}
-                step="0.1"
-                value={createForm.areaM2}
-                onChange={(event) => setCreateForm((prev) => ({ ...prev, areaM2: event.target.value }))}
-                required
-              />
-            </label>
+              <Input type="number" min={1} step="0.1" {...registerCreate("areaM2", { valueAsNumber: true })} />
+            </Label>
           </div>
+          {createFormErrors.bedrooms ? <p className="property-error">{createFormErrors.bedrooms.message}</p> : null}
+          {createFormErrors.bathrooms ? <p className="property-error">{createFormErrors.bathrooms.message}</p> : null}
+          {createFormErrors.areaM2 ? <p className="property-error">{createFormErrors.areaM2.message}</p> : null}
           <div className="property-form-inline">
-            <label>
+            <Label>
               Disponible desde
-              <input
-                type="date"
-                value={createForm.availableFrom}
-                onChange={(event) => setCreateForm((prev) => ({ ...prev, availableFrom: event.target.value }))}
-                required
-              />
-            </label>
-            <label>
+              <Input type="date" {...registerCreate("availableFrom")} />
+            </Label>
+            <Label>
               Tipo de contrato
-              <select
-                value={createForm.contractType}
-                onChange={(event) =>
-                  setCreateForm((prev) => ({
-                    ...prev,
-                    contractType: event.target.value as PropertyUpsertRequest["contractType"],
-                  }))
-                }
-              >
+              <select {...registerCreate("contractType")}>
                 {CONTRACT_OPTIONS.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
                 ))}
               </select>
-            </label>
-            <label>
+            </Label>
+            <Label>
               Estado
-              <select
-                value={createForm.status}
-                onChange={(event) =>
-                  setCreateForm((prev) => ({ ...prev, status: event.target.value as PropertyUpsertRequest["status"] }))
-                }
-              >
+              <select {...registerCreate("status")}>
                 {STATUS_OPTIONS.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
                 ))}
               </select>
-            </label>
+            </Label>
           </div>
-          <label className="property-checkbox">
-            <input
-              type="checkbox"
-              checked={createForm.isFurnished}
-              onChange={(event) => setCreateForm((prev) => ({ ...prev, isFurnished: event.target.checked }))}
-            />
+          {createFormErrors.availableFrom ? <p className="property-error">{createFormErrors.availableFrom.message}</p> : null}
+          <Label className="property-checkbox">
+            <Checkbox {...registerCreate("isFurnished")} />
             Amueblado
-          </label>
+          </Label>
           {createError ? <p className="property-error">{createError}</p> : null}
-          <button className="btn-save" type="submit" disabled={!canCreate || isCreating}>
+          <Button className="btn-save" type="submit" disabled={!isCreateValid || isCreating}>
             {isCreating ? "Creando..." : "Crear inmueble"}
-          </button>
+          </Button>
         </form>
 
-        <form className="property-form" onSubmit={handlePatchSubmit}>
+        <form className="property-form" onSubmit={handleSubmitPatch(handlePatchSubmit)}>
           <h2>Editar inmueble</h2>
-          <label>
+          <Label>
             ID del inmueble
-            <input
-              value={patchForm.id}
-              onChange={(event) => setPatchForm((prev) => ({ ...prev, id: event.target.value }))}
-              placeholder="UUID"
-              required
-            />
-          </label>
+            <Input placeholder="UUID" {...registerPatch("id")} />
+          </Label>
+          {patchFormErrors.id ? <p className="property-error">{patchFormErrors.id.message}</p> : null}
           <p className="guard-message">Solo completa los campos que quieras actualizar.</p>
-          <label>
+          <Label>
             Titulo
-            <input value={patchForm.title} onChange={(event) => setPatchForm((prev) => ({ ...prev, title: event.target.value }))} />
-          </label>
-          <label>
+            <Input {...registerPatch("title")} />
+          </Label>
+          <Label>
             Descripcion
-            <textarea
-              value={patchForm.description}
-              onChange={(event) => setPatchForm((prev) => ({ ...prev, description: event.target.value }))}
-              rows={3}
-            />
-          </label>
-          <label>
+            <Textarea rows={3} {...registerPatch("description")} />
+          </Label>
+          <Label>
             Ciudad
-            <input value={patchForm.city} onChange={(event) => setPatchForm((prev) => ({ ...prev, city: event.target.value }))} />
-          </label>
-          <label>
+            <Input {...registerPatch("city")} />
+          </Label>
+          <Label>
             Barrio
-            <input
-              value={patchForm.neighborhood}
-              onChange={(event) => setPatchForm((prev) => ({ ...prev, neighborhood: event.target.value }))}
-            />
-          </label>
-          <label>
+            <Input {...registerPatch("neighborhood")} />
+          </Label>
+          <Label>
             Direccion
-            <input value={patchForm.address} onChange={(event) => setPatchForm((prev) => ({ ...prev, address: event.target.value }))} />
-          </label>
+            <Input {...registerPatch("address")} />
+          </Label>
           <div className="property-form-inline">
-            <label>
+            <Label>
               Precio mensual
-              <input
-                type="number"
-                min={1}
-                step="0.01"
-                value={patchForm.monthlyPrice}
-                onChange={(event) => setPatchForm((prev) => ({ ...prev, monthlyPrice: event.target.value }))}
-              />
-            </label>
-            <label>
+              <Input type="number" min={1} step="0.01" {...registerPatch("monthlyPrice", { valueAsNumber: true })} />
+            </Label>
+            <Label>
               Deposito
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                value={patchForm.depositAmount}
-                onChange={(event) => setPatchForm((prev) => ({ ...prev, depositAmount: event.target.value }))}
-              />
-            </label>
+              <Input type="number" min={0} step="0.01" {...registerPatch("depositAmount", { valueAsNumber: true })} />
+            </Label>
           </div>
           <div className="property-form-inline">
-            <label>
+            <Label>
               Habitaciones
-              <input
-                type="number"
-                min={0}
-                value={patchForm.bedrooms}
-                onChange={(event) => setPatchForm((prev) => ({ ...prev, bedrooms: event.target.value }))}
-              />
-            </label>
-            <label>
+              <Input type="number" min={0} {...registerPatch("bedrooms", { valueAsNumber: true })} />
+            </Label>
+            <Label>
               Banos
-              <input
-                type="number"
-                min={0}
-                value={patchForm.bathrooms}
-                onChange={(event) => setPatchForm((prev) => ({ ...prev, bathrooms: event.target.value }))}
-              />
-            </label>
-            <label>
+              <Input type="number" min={0} {...registerPatch("bathrooms", { valueAsNumber: true })} />
+            </Label>
+            <Label>
               m2
-              <input
-                type="number"
-                min={1}
-                step="0.1"
-                value={patchForm.areaM2}
-                onChange={(event) => setPatchForm((prev) => ({ ...prev, areaM2: event.target.value }))}
-              />
-            </label>
+              <Input type="number" min={1} step="0.1" {...registerPatch("areaM2", { valueAsNumber: true })} />
+            </Label>
           </div>
           <div className="property-form-inline">
-            <label>
+            <Label>
               Disponible desde
-              <input
-                type="date"
-                value={patchForm.availableFrom}
-                onChange={(event) => setPatchForm((prev) => ({ ...prev, availableFrom: event.target.value }))}
-              />
-            </label>
-            <label>
+              <Input type="date" {...registerPatch("availableFrom")} />
+            </Label>
+            <Label>
               Tipo de contrato
-              <select
-                value={patchForm.contractType}
-                onChange={(event) =>
-                  setPatchForm((prev) => ({
-                    ...prev,
-                    contractType: event.target.value as PatchFormState["contractType"],
-                  }))
-                }
-              >
+              <select {...registerPatch("contractType")}>
                 <option value="">Sin cambios</option>
                 {CONTRACT_OPTIONS.map((option) => (
                   <option key={option} value={option}>
@@ -568,15 +500,10 @@ export function PropertyManagementPanel() {
                   </option>
                 ))}
               </select>
-            </label>
-            <label>
+            </Label>
+            <Label>
               Estado
-              <select
-                value={patchForm.status}
-                onChange={(event) =>
-                  setPatchForm((prev) => ({ ...prev, status: event.target.value as PatchFormState["status"] }))
-                }
-              >
+              <select {...registerPatch("status")}>
                 <option value="">Sin cambios</option>
                 {STATUS_OPTIONS.map((option) => (
                   <option key={option} value={option}>
@@ -584,23 +511,20 @@ export function PropertyManagementPanel() {
                   </option>
                 ))}
               </select>
-            </label>
+            </Label>
           </div>
-          <label>
+          <Label>
             Amueblado
-            <select
-              value={patchForm.isFurnished}
-              onChange={(event) => setPatchForm((prev) => ({ ...prev, isFurnished: event.target.value as PatchFormState["isFurnished"] }))}
-            >
+            <select {...registerPatch("isFurnished")}>
               <option value="">Sin cambios</option>
               <option value="true">Si</option>
               <option value="false">No</option>
             </select>
-          </label>
+          </Label>
           {patchError ? <p className="property-error">{patchError}</p> : null}
-          <button className="btn-save" type="submit" disabled={patchForm.id.trim().length === 0 || isPatching}>
+          <Button className="btn-save" type="submit" disabled={!isPatchValid || isPatching}>
             {isPatching ? "Guardando..." : "Guardar cambios"}
-          </button>
+          </Button>
         </form>
       </div>
 
@@ -608,47 +532,53 @@ export function PropertyManagementPanel() {
         <h2>Galeria del inmueble</h2>
         <p className="guard-message">Subida multiple (maximo 15), validacion de formato y tamano, y orden manual.</p>
 
-        <form className="property-image-controls" onSubmit={handleUploadImages}>
-          <label>
+        <form className="property-image-controls" onSubmit={handleSubmitGallery(handleUploadImages)}>
+          <Label>
             ID del inmueble
-            <input
-              value={patchForm.id}
-              onChange={(event) => setPatchForm((prev) => ({ ...prev, id: event.target.value }))}
+            <Input
               placeholder="UUID"
-              required
+              {...galleryPropertyIdField}
+              onChange={(event) => {
+                galleryPropertyIdField.onChange(event);
+                setPatchValue("id", event.target.value, { shouldValidate: true });
+              }}
             />
-          </label>
+          </Label>
+          {galleryFormErrors.propertyId ? <p className="property-error">{galleryFormErrors.propertyId.message}</p> : null}
 
-          <label>
+          <Label>
             Imagenes
-            <input
+            <Input
               type="file"
               accept="image/jpeg,image/png,image/webp"
               multiple
-              onChange={(event) => setImageFiles(Array.from(event.target.files ?? []))}
+              {...galleryFilesField}
             />
-          </label>
+          </Label>
+          {galleryFormErrors.files ? <p className="property-error">{galleryFormErrors.files.message}</p> : null}
 
           <div className="property-image-actions">
-            <button className="btn-save" type="submit" disabled={isUploadingImages}>
+            <Button className="btn-save" type="submit" disabled={!isGalleryValid || isUploadingImages}>
               {isUploadingImages ? "Subiendo..." : "Subir imagenes"}
-            </button>
-            <button
+            </Button>
+            <Button
               className="btn-link"
+              variant="outline"
               type="button"
-              onClick={() => void loadGallery(patchForm.id.trim())}
-              disabled={patchForm.id.trim().length === 0 || isLoadingGallery}
+              onClick={() => void loadGallery(galleryPropertyId)}
+              disabled={galleryPropertyId.trim().length === 0 || isLoadingGallery}
             >
               {isLoadingGallery ? "Cargando..." : "Cargar galeria"}
-            </button>
-            <button
+            </Button>
+            <Button
               className="btn-link"
+              variant="outline"
               type="button"
-              onClick={() => void handleSaveImageOrder()}
+              onClick={() => void handleSaveImageOrder(galleryPropertyId)}
               disabled={gallery.length === 0 || isSavingOrder}
             >
               {isSavingOrder ? "Guardando..." : "Guardar orden"}
-            </button>
+            </Button>
           </div>
         </form>
 
@@ -669,15 +599,15 @@ export function PropertyManagementPanel() {
                   <span>{image.mimeType}</span>
                   <span>{Math.round(image.fileSizeBytes / 1024)} KB</span>
                 </div>
-                <label>
+                <Label>
                   Orden
-                  <input
+                  <Input
                     type="number"
                     min={0}
                     value={image.displayOrder}
                     onChange={(event) => updateDisplayOrder(image.id, Number(event.target.value))}
                   />
-                </label>
+                </Label>
               </article>
             ))}
           </div>

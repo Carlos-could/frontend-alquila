@@ -47,15 +47,18 @@ export function RouteGuard({ allowedRoles, children }: RouteGuardProps) {
   }, [allowedRoles]);
 
   if (status === "loading") {
-    return <p className="guard-message">Validando permisos...</p>;
+    return <p className="text-sm font-semibold text-slate-600">Validando permisos...</p>;
   }
 
   if (status === "unauthenticated") {
     return (
-      <section className="guard-panel">
-        <h1>Ruta protegida</h1>
-        <p className="guard-message">Debes iniciar sesion para acceder.</p>
-        <Link className="btn-save" href="/">
+      <section className="grid w-full max-w-[560px] gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h1 className="font-[var(--font-heading)] text-2xl font-semibold text-slate-900">Ruta protegida</h1>
+        <p className="text-sm font-semibold text-slate-600">Debes iniciar sesion para acceder.</p>
+        <Link
+          href="/"
+          className="inline-flex h-10 items-center justify-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
+        >
           Ir al inicio
         </Link>
       </section>
@@ -64,12 +67,15 @@ export function RouteGuard({ allowedRoles, children }: RouteGuardProps) {
 
   if (status === "unauthorized") {
     return (
-      <section className="guard-panel">
-        <h1>Acceso denegado</h1>
-        <p className="guard-message">
+      <section className="grid w-full max-w-[560px] gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h1 className="font-[var(--font-heading)] text-2xl font-semibold text-slate-900">Acceso denegado</h1>
+        <p className="text-sm font-semibold text-slate-600">
           Tu rol actual es <strong>{session?.role ?? "desconocido"}</strong> y no tiene permisos para esta ruta.
         </p>
-        <Link className="btn-save" href="/">
+        <Link
+          href="/"
+          className="inline-flex h-10 items-center justify-center rounded-md bg-slate-900 px-4 text-sm font-medium text-white hover:bg-slate-800"
+        >
           Volver al inicio
         </Link>
       </section>

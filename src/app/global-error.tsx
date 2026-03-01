@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { logger } from "@/features/observability/logger";
 
 type GlobalErrorPageProps = {
@@ -21,13 +22,13 @@ export default function GlobalErrorPage({ error, reset }: GlobalErrorPageProps) 
   return (
     <html lang="es">
       <body>
-        <main className="protected-shell">
-          <section className="guard-panel">
-            <h1>Error crítico</h1>
-            <p className="guard-message">La aplicación encontró un fallo inesperado.</p>
-            <button type="button" className="btn-save" onClick={reset}>
+        <main className="min-h-dvh grid place-items-center p-6">
+          <section className="grid w-full max-w-[560px] gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h1 className="font-[var(--font-heading)] text-2xl font-semibold text-slate-900">Error critico</h1>
+            <p className="text-sm font-semibold text-slate-600">La aplicacion encontro un fallo inesperado.</p>
+            <Button type="button" onClick={reset}>
               Reintentar
-            </button>
+            </Button>
           </section>
         </main>
       </body>

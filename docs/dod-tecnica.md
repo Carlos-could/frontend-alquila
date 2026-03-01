@@ -22,6 +22,7 @@ Usar este checklist en cada ticket de implementación.
 - [ ] Sin `any` nuevo en frontend (salvo excepción documentada).
 - [ ] Manejo de errores consistente (backend y frontend).
 - [ ] Sin N+1 evidente en llamadas de red o acceso a datos.
+- [ ] Cumplimiento de ADR-001 en frontend: Tailwind/shadcn y RHF+Zod en formularios.
 
 ## 4) Configuración y entorno
 

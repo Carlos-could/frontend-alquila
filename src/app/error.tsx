@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { logger } from "@/features/observability/logger";
 
 type ErrorPageProps = {
@@ -19,13 +20,13 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   }, [error]);
 
   return (
-    <main className="protected-shell">
-      <section className="guard-panel">
-        <h1>Se produjo un error</h1>
-        <p className="guard-message">Intenta recargar esta sección.</p>
-        <button type="button" className="btn-save" onClick={reset}>
+    <main className="min-h-dvh grid place-items-center p-6">
+      <section className="grid w-full max-w-[560px] gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h1 className="font-[var(--font-heading)] text-2xl font-semibold text-slate-900">Se produjo un error</h1>
+        <p className="text-sm font-semibold text-slate-600">Intenta recargar esta seccion.</p>
+        <Button type="button" onClick={reset}>
           Reintentar
-        </button>
+        </Button>
       </section>
     </main>
   );
